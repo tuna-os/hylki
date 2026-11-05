@@ -7,7 +7,8 @@ Name:           hylki
 Version:        1.47.0
 Release:        1%{?dist}
 Summary:        A clean, fast GNOME-native email client
-# The Tuta helper, /usr/bin/hylki-tuta, is GPL-3.0-or-later. So is the Proton
+# The Tuta helper, /usr/bin/hylki-tuta (tuta-helper from tuta-unofficial-sdk,
+# staged under that name), is GPL-3.0-or-later. So is the Proton
 # helper, /usr/bin/hylki-proton, which links Go modules under MIT, BSD-2-Clause
 # and BSD-3-Clause.
 License:        AGPL-3.0-or-later AND GPL-3.0-or-later AND MIT AND BSD-2-Clause AND BSD-3-Clause
@@ -37,7 +38,8 @@ and blocks trackers by default - no telemetry, no analytics.
 
 %install
 install -Dm755 hylki %{buildroot}%{_bindir}/hylki
-# The Tuta helper, beside hylki, where the app looks for it first.
+# The Tuta helper, beside hylki, where the app looks for it first; the name
+# also gives tuta-helper its Hylki identity.
 install -Dm755 hylki-tuta %{buildroot}%{_bindir}/hylki-tuta
 # The Proton helper, likewise.
 install -Dm755 hylki-proton %{buildroot}%{_bindir}/hylki-proton

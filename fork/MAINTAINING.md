@@ -26,7 +26,7 @@ There are three rules:
 | Bug fix, security fix, UI polish, docs, translations, anything provider-neutral | **Upstream** | A branch from `upstream/main` and a PR to hyprlab/hylki (see "Sending a change upstream") |
 | Security hardening that is not Tuta or Proton specific (cache encryption at rest, OpenPGP, link-tracker stripping, ...) | **Upstream** | The same route |
 | A seam the fork needs in shared code (a generic hook, an outbox state, a stable message key) that has a use beyond Tuta and Proton | **Upstream**, phrased provider-neutrally | Propose it without mentioning Tuta or Proton; if upstream declines, it stays in the fork as a touchpoint |
-| Native Tuta accounts | **Fork only** | `native/tuta` (moving to [tuta-unofficial-sdk](https://github.com/tuna-os/tuta-unofficial-sdk)), `src/worker/tuta*` |
+| Native Tuta accounts | **Fork only** | [tuta-unofficial-sdk](https://github.com/tuna-os/tuta-unofficial-sdk) (the `native/tuta-unofficial-sdk` submodule), `src/worker/tuta*` |
 | Native Proton accounts | **Fork only** | `native/proton`, `src/worker/proton*` |
 | Shared helper plumbing for Tuta and Proton | **Fork only** | `src/worker/helper*` |
 | Rebranding, fork CI, release and sync workflows | **Fork only** | `fork/`, `.github/workflows/{upstream-sync,fork-release,tuta-helper,proton-helper}.yml` |
@@ -102,12 +102,17 @@ no Tuta or Proton account configured. If it would, it goes upstream.
 
 ## Dependencies the fork adds
 
-- **Tuta:** `native/tuta`. It is moving to its own repository,
-  [tuna-os/tuta-unofficial-sdk](https://github.com/tuna-os/tuta-unofficial-sdk):
-  a Rust library built on Tuta's SDK plus a small set of reviewed SDK
-  patches, and the `tuta-helper` JSON front end Hylki talks to.
-  - Bump it as a submodule.
-  - Its README lists every SDK patch and why it exists.
+- **Tuta:** [tuna-os/tuta-unofficial-sdk](https://github.com/tuna-os/tuta-unofficial-sdk),
+  the `native/tuta-unofficial-sdk` submodule: a Rust library built on Tuta's
+  SDK plus a small set of reviewed SDK patches, and the `tuta-helper` JSON
+  front end Hylki talks to. Every package installs `tuta-helper` under the
+  name `hylki-tuta`, which the app looks for and which gives the helper its
+  Hylki identity (sessions named "Hylki", `HYLKI_TUTA_DEBUG`).
+  - Tuta changes (protocol, SDK patches, tests) go to that repository, with
+    its own CI and live tests. The fork only bumps the submodule to a
+    release tag, which `.github/workflows/tuta-helper.yml` checks.
+  - Its README lists every SDK patch and why it exists, and documents the
+    protocol `src/worker/tuta*` speaks.
 - **Proton:** `native/proton`, a Go helper over Proton's own go-proton-api
   and gopenpgp, with vendored modules.
 - **Licence:** both helpers are GPL-3.0-or-later, compatible with Hylki's

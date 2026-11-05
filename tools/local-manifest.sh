@@ -38,8 +38,9 @@ manifest = open(src).read()
 
 # The pinned GitHub source becomes the checkout itself. `skip` keeps build
 # output, the signed repo and the Tuta helper's host-only weight (its build
-# output and the tutanota checkout only sdk-prepare.py reads) out of the copy
-# flatpak-builder makes, and a Proton helper built on the host with it.
+# output and the tutanota checkout only sdk-prepare.py reads, under
+# native/tuta in older trees and native/tuta-unofficial-sdk since) out of the
+# copy flatpak-builder makes, and a Proton helper built on the host with it.
 pinned = re.compile(
     r"      - type: git\n"
     r"        url: https://github\.com/hyprlab/hylki\.git\n"
@@ -59,11 +60,13 @@ local = (
     "          - native/tuta/target\n"
     "          - native/tuta/upstream/target\n"
     "          - native/tuta/upstream/tuta-repo\n"
+    "          - native/tuta-unofficial-sdk/target\n"
+    "          - native/tuta-unofficial-sdk/upstream\n"
     "          - native/proton/hylki-proton\n"
 )
 # Up to three modules build from this repository: the app, its Tuta helper
-# (native/tuta) and its Proton helper (native/proton). A manifest from before
-# a helper has no module for it.
+# (native/tuta-unofficial-sdk, native/tuta before it) and its Proton helper
+# (native/proton). A manifest from before a helper has no module for it.
 has_helper = "  - name: hylki-tuta\n" in manifest
 has_proton = "  - name: hylki-proton\n" in manifest
 expected = 1 + has_helper + has_proton
@@ -73,12 +76,13 @@ if count != expected:
 
 if has_helper:
     # The checkout already holds what the helper builds from -- the SDK that
-    # native/tuta/prepare.sh prepared, or in a manifest from before that
-    # script, tutabridge and the SDK it generated -- so the separate sources
-    # would only overwrite the working tree's copies.
+    # native/tuta-unofficial-sdk/prepare.sh (native/tuta/prepare.sh before
+    # it) prepared, or in a manifest from before that script, tutabridge and
+    # the SDK it generated -- so the separate sources would only overwrite
+    # the working tree's copies.
     prepared = (
         r"      - type: dir\n"
-        r"        path: native/tuta/prepared\n"
+        r"        path: native/tuta(?:-unofficial-sdk)?/prepared\n"
         r"(?:        .*\n)+"
     )
     blocks = (prepared,) if re.search(prepared, manifest) else (
@@ -97,9 +101,10 @@ if has_helper:
 # The cargo-sources.json files are referenced relative to the manifest, which
 # is about to move elsewhere.
 manifest = manifest.replace("      - cargo-sources.json\n", f"      - {root}/cargo-sources.json\n")
-manifest = manifest.replace(
-    "      - native/tuta/cargo-sources.json\n", f"      - {root}/native/tuta/cargo-sources.json\n"
-)
+for helper in ("native/tuta", "native/tuta-unofficial-sdk"):
+    manifest = manifest.replace(
+        f"      - {helper}/cargo-sources.json\n", f"      - {root}/{helper}/cargo-sources.json\n"
+    )
 
 open(out, "w").write(manifest)
 print(out)

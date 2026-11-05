@@ -1,19 +1,21 @@
-name: Tuta helper tests
+name: Tuta helper smoke check
 
-# The Tuta helper (native/tuta) is a crate of its own, with its own lock file,
-# built against the Tuta SDK that native/tuta/prepare.sh prepares from the
-# submodules and Hylki's own SDK patches. Its tests run here on every change
-# to it; the app itself has no test workflow.
+# The Tuta helper is tuta-helper from tuta-unofficial-sdk, the
+# native/tuta-unofficial-sdk submodule. That repository runs its own tests,
+# lints and audits (github.com/tuna-os/tuta-unofficial-sdk), so this only
+# checks what the fork relies on: the submodule sits on a release tag, its
+# SDK prepares, the helper builds from its lock file, and run as hylki-tuta
+# (the name the app looks for) it answers with a protocol error envelope.
 
 on:
   push:
     paths:
-      - 'native/tuta/**'
+      - 'native/tuta-unofficial-sdk'
       - '.gitmodules'
       - '.github/workflows/tuta-helper.yml'
   pull_request:
     paths:
-      - 'native/tuta/**'
+      - 'native/tuta-unofficial-sdk'
       - '.gitmodules'
       - '.github/workflows/tuta-helper.yml'
   workflow_dispatch:
@@ -22,8 +24,8 @@ permissions:
   contents: read
 
 jobs:
-  test:
-    name: cargo test
+  smoke:
+    name: tuta-helper as hylki-tuta
     runs-on: ubuntu-latest
     timeout-minutes: 30
 
@@ -32,15 +34,23 @@ jobs:
         with:
           submodules: recursive
 
+      - name: The submodule is on a release tag
+        working-directory: native/tuta-unofficial-sdk
+        run: |
+          git fetch --tags --quiet origin
+          git describe --exact-match --tags HEAD
+
       - name: Prepare the Tuta SDK
-        run: sh native/tuta/prepare.sh
+        run: sh native/tuta-unofficial-sdk/prepare.sh
 
-      - name: Fetch the crates
-        # Fetched first so the tests run as the packaged builds do: offline,
-        # from the lock file alone.
-        working-directory: native/tuta
-        run: cargo fetch --locked
+      - name: Build the helper
+        working-directory: native/tuta-unofficial-sdk
+        run: cargo build --locked --release --bin tuta-helper
 
-      - name: Test
-        working-directory: native/tuta
-        run: cargo test --locked --offline
+      - name: It answers as hylki-tuta
+        run: |
+          mkdir -p "$RUNNER_TEMP/bin"
+          ln -s "$PWD/native/tuta-unofficial-sdk/target/release/tuta-helper" "$RUNNER_TEMP/bin/hylki-tuta"
+          reply="$(printf '{"version":1,"op":"star"}' | "$RUNNER_TEMP/bin/hylki-tuta")"
+          echo "$reply"
+          test "$reply" = '{"error":{"code":"invalid_request"},"version":1}'

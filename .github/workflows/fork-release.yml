@@ -46,8 +46,9 @@ jobs:
       - uses: actions/checkout@v4
         with:
           ref: ${{ inputs.ref || github.ref }}
-          # The Tuta helper's upstream (native/tuta/upstream) and the
-          # tutanota checkout inside it, which sdk-prepare.py reads.
+          # The Tuta helper's SDK (native/tuta-unofficial-sdk) and the
+          # tutabridge and tutanota checkouts inside it, which
+          # sdk-prepare.py reads.
           submodules: recursive
 
       - name: Pick the version
@@ -95,14 +96,17 @@ jobs:
           install_ref org.freedesktop.Sdk.Extension.golang//25.08
 
       - name: Prepare the Tuta SDK
-        # The helper builds against an SDK generated from the tutanota
-        # submodule plus Hylki's own SDK patches; the prepared tree is not
-        # tracked, so it is made here and carried in with the checkout.
-        run: sh native/tuta/prepare.sh
+        # The helper (tuta-helper from tuta-unofficial-sdk) builds against an
+        # SDK generated from the tutanota submodule plus the SDK's own
+        # patches; the prepared tree is not tracked, so it is made here and
+        # carried in with the checkout.
+        run: sh native/tuta-unofficial-sdk/prepare.sh
 
       - name: Vendor the crate sources
-        # As build-arm64.yml does: cargo-sources.json comes out of each
-        # Cargo.lock, for the offline build inside the sandbox.
+        # As build-arm64.yml does: cargo-sources.json comes out of the app's
+        # Cargo.lock, for the offline build inside the sandbox. The Tuta
+        # helper's is committed in tuta-unofficial-sdk, whose CI keeps it
+        # current.
         run: |
           curl -fsSL -o /tmp/gen-cargo-sources.py \
             https://raw.githubusercontent.com/flatpak/flatpak-builder-tools/master/cargo/flatpak-cargo-generator.py
@@ -123,7 +127,7 @@ jobs:
             test -s "$1/cargo-sources.json"
           }
           vendor .
-          vendor native/tuta
+          test -s native/tuta-unofficial-sdk/cargo-sources.json
 
       - name: Rebrand
         # This checkout is thrown away after the job, so it is rebranded in place.
@@ -144,7 +148,7 @@ jobs:
             aarch64) want_arch='ARM aarch64' ;;
           esac
           for bin in hylki hylki-tuta hylki-proton; do
-            file "$files/bin/$bin" | tee /dev/stderr | grep -q "$want_arch"
+            file -L "$files/bin/$bin" | tee /dev/stderr | grep -q "$want_arch"
           done
           want="$(sed -n 's/^version = "\(.*\)"/\1/p' Cargo.toml | head -1)"
           grep -q "version=\"$want\"" "$files/share/metainfo/org.tunaos.Hylki.metainfo.xml" \

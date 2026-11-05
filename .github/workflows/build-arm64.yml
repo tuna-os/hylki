@@ -37,8 +37,9 @@ jobs:
       - uses: actions/checkout@v4
         with:
           ref: ${{ github.event.inputs.ref || github.ref }}
-          # The Tuta helper's upstream (native/tuta/upstream) and the
-          # tutanota checkout inside it, which sdk-prepare.py reads.
+          # The Tuta helper's SDK (native/tuta-unofficial-sdk) and the
+          # tutabridge and tutanota checkouts inside it, which
+          # sdk-prepare.py reads.
           submodules: recursive
 
       # The manifest script as this workflow knows it. A run started by hand
@@ -116,10 +117,14 @@ jobs:
         # The helper builds against an SDK generated from the tutanota
         # submodule plus Hylki's own SDK patches. The prepared tree is not
         # tracked, so it is made here and carried into the build by the
-        # working-tree manifest. An older tag has no prepare.sh (it ran
-        # sdk-prepare.py alone) or no helper at all.
+        # working-tree manifest. The helper comes from the
+        # native/tuta-unofficial-sdk submodule; an older tag has it in
+        # native/tuta, with no prepare.sh (it ran sdk-prepare.py alone), or
+        # no helper at all.
         run: |
-          if [ -f native/tuta/prepare.sh ]; then
+          if [ -f native/tuta-unofficial-sdk/prepare.sh ]; then
+            sh native/tuta-unofficial-sdk/prepare.sh
+          elif [ -f native/tuta/prepare.sh ]; then
             sh native/tuta/prepare.sh
           elif [ -f native/tuta/Cargo.lock ]; then
             python3 native/tuta/upstream/scripts/sdk-prepare.py
@@ -130,7 +135,8 @@ jobs:
         # tarball so the build inside the sandbox needs no network. It comes out
         # of Cargo.lock, which is committed, so this reproduces the file the
         # maintainer builds x86_64 from. The Tuta helper has a lock file and a
-        # cargo-sources.json of its own.
+        # cargo-sources.json of its own: tuta-unofficial-sdk commits its
+        # (its CI keeps it current), and older tags generate native/tuta's.
         run: |
           curl -fsSL -o /tmp/gen-cargo-sources.py \
             https://raw.githubusercontent.com/flatpak/flatpak-builder-tools/master/cargo/flatpak-cargo-generator.py
@@ -159,6 +165,9 @@ jobs:
           if [ -f native/tuta/Cargo.lock ]; then
             vendor native/tuta
           fi
+          if [ -f native/tuta-unofficial-sdk/Cargo.lock ]; then
+            test -s native/tuta-unofficial-sdk/cargo-sources.json
+          fi
 
       - name: Build
         # The manifest's pinned source points at the *previous* release when this
@@ -179,8 +188,8 @@ jobs:
       - name: Check the result is actually ARM64
         run: |
           file build-dir/files/bin/hylki | tee /dev/stderr | grep -q 'ARM aarch64'
-          if [ -f native/tuta/Cargo.toml ]; then
-            file build-dir/files/bin/hylki-tuta | tee /dev/stderr | grep -q 'ARM aarch64'
+          if [ -f native/tuta/Cargo.toml ] || [ -f native/tuta-unofficial-sdk/Cargo.toml ]; then
+            file -L build-dir/files/bin/hylki-tuta | tee /dev/stderr | grep -q 'ARM aarch64'
           fi
           if [ -f native/proton/go.mod ]; then
             file build-dir/files/bin/hylki-proton | tee /dev/stderr | grep -q 'ARM aarch64'

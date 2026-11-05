@@ -33,37 +33,42 @@ cargo build --release
 
 ## Tuta helper
 
-Tuta accounts go through `hylki-tuta`, a separate program built from
-`native/tuta` (GPL-3.0-or-later). Hylki looks for it next to the `hylki`
-executable first, then on `PATH`, so every package installs it in the same
-`bin` directory as `hylki`. Without it, everything but Tuta accounts works.
+Tuta accounts go through `hylki-tuta`, a separate program (GPL-3.0-or-later):
+`tuta-helper` from [tuta-unofficial-sdk](https://github.com/tuna-os/tuta-unofficial-sdk),
+the `native/tuta-unofficial-sdk` submodule, installed under the name
+`hylki-tuta`. Hylki looks for it next to the `hylki` executable first, then
+on `PATH`, so every package installs it in the same `bin` directory as
+`hylki`. Started as `hylki-tuta` it names its sessions "Hylki" and reads
+`HYLKI_TUTA_DEBUG`. Without it, everything but Tuta accounts works.
 
-The helper builds against the Tuta SDK, which is generated from two
-submodules, `native/tuta/upstream` (tutabridge) and the tutanota repository
-inside it, plus Hylki's own SDK patches in `native/tuta/sdk-patches`. Check
-the submodules out and prepare the SDK once, and again whenever the
-submodule or a patch changes:
+The helper builds against the Tuta SDK, which is generated from the
+submodules inside the SDK repository (tutabridge, and the tutanota repository
+inside that) plus the SDK repository's own patches. Check the submodules out
+and prepare the SDK once, and again whenever the submodule moves:
 
 ```sh
 git submodule update --init --recursive
-native/tuta/prepare.sh
+sh native/tuta-unofficial-sdk/prepare.sh
 ```
 
 The script needs `git` and `python3`, no network. It runs tutabridge's
-`sdk-prepare.py`, which verifies the generated tree in
-`native/tuta/upstream/sdk/generated` against the digests the submodule pins,
-then writes that tree with Hylki's patches applied, beside tutabridge's
-`tutabridge-tuta` crate, to `native/tuta/prepared` (untracked), which the
-helper builds from. On a repeat run it only checks. Then build the helper and
-put it beside `hylki`:
+`sdk-prepare.py`, which verifies the generated tree against the digests the
+submodule pins, then writes that tree with the patches applied, beside
+tutabridge's `tutabridge-tuta` crate, to `native/tuta-unofficial-sdk/prepared`
+(untracked), which the helper builds from. On a repeat run it only checks.
+Then build the helper and put it beside `hylki` under the name the app looks
+for:
 
 ```sh
-(cd native/tuta && cargo build --release --locked)
-install -Dm755 native/tuta/target/release/hylki-tuta ~/.local/bin/hylki-tuta
+(cd native/tuta-unofficial-sdk && cargo build --release --locked --bin tuta-helper)
+install -Dm755 native/tuta-unofficial-sdk/target/release/tuta-helper ~/.local/bin/hylki-tuta
 ```
 
-`native/tuta` has its own `Cargo.lock`, and its tests run with
-`cargo test --locked` there (`.github/workflows/tuta-helper.yml`).
+The SDK repository has its own `Cargo.lock`, tests and CI; its README
+describes the protocol and lists its SDK patches. Moving to a new release is
+a submodule bump to its tag. `.github/workflows/tuta-helper.yml` checks that
+the submodule sits on a release tag and that the helper builds and answers
+as `hylki-tuta`.
 
 ## Proton helper
 
@@ -99,15 +104,18 @@ See [po/README.md](../po/README.md).
 
 The manifest is `co.hyprlab.Hylki.yml`, built with `flatpak-builder` (or
 `org.flatpak.Builder`). Its Rust dependencies come from `cargo-sources.json`,
-and the Tuta helper's from `native/tuta/cargo-sources.json`. Neither is
-committed; regenerate them whenever the matching `Cargo.lock` changes:
+which is not committed; regenerate it whenever `Cargo.lock` changes:
 
 ```sh
 python3 flatpak-cargo-generator.py Cargo.lock -o cargo-sources.json
-python3 flatpak-cargo-generator.py native/tuta/Cargo.lock -o native/tuta/cargo-sources.json
 ```
 
-The `hylki-tuta` module builds the helper into `/app/bin` beside `hylki`,
+The Tuta helper's come from `native/tuta-unofficial-sdk/cargo-sources.json`,
+which the SDK repository commits (its `scripts/cargo-sources.sh` writes it,
+and its CI fails when it is stale).
+
+The `hylki-tuta` module builds `tuta-helper` into `/app/bin` beside `hylki`,
+with `hylki-tuta` a symlink to it,
 and the `hylki-proton` module builds the Proton helper there with the
 `org.freedesktop.Sdk.Extension.golang//25.08` SDK extension (install it
 beside the Rust one), offline from `native/proton/vendor`.

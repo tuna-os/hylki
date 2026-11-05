@@ -44,8 +44,9 @@ jobs:
 
     steps:
       # actions/checkout clones with git when it is installed, and only a
-      # clone brings the submodules: the Tuta helper's upstream and the
-      # tutanota checkout sdk-prepare.py reads (the build script runs it).
+      # clone brings the submodules: the Tuta helper's SDK, with tutabridge
+      # and the tutanota checkout sdk-prepare.py reads (the build script runs
+      # it).
       - name: Install git
         run: pacman -Sy --noconfirm --needed git
 

@@ -4,7 +4,6 @@
 # Checked by fork/check-touchpoints.sh in the upstream-sync workflow.
 .github/workflows/build-appimage.yml
 .github/workflows/build-arm64.yml
-.gitignore
 CHANGELOG.md
 Cargo.lock
 Cargo.toml

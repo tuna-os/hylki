@@ -75,9 +75,12 @@ if [ ! -f /etc/arch-release ]; then
     # to please one build is not a trade worth making.
     #
     # The Tuta helper's SDK is prepared here first: sdk-prepare.py checks the
-    # submodules' git metadata, which the copy leaves out. Trees from before
-    # native/tuta/prepare.sh ran sdk-prepare.py alone.
-    if [ -f "$ROOT/native/tuta/prepare.sh" ]; then
+    # submodules' git metadata, which the copy leaves out. The helper comes
+    # from native/tuta-unofficial-sdk; older trees had native/tuta, and
+    # before native/tuta/prepare.sh ran sdk-prepare.py alone.
+    if [ -f "$ROOT/native/tuta-unofficial-sdk/prepare.sh" ]; then
+        sh "$ROOT/native/tuta-unofficial-sdk/prepare.sh"
+    elif [ -f "$ROOT/native/tuta/prepare.sh" ]; then
         sh "$ROOT/native/tuta/prepare.sh"
     elif [ -f "$ROOT/native/tuta/Cargo.toml" ]; then
         python3 "$ROOT/native/tuta/upstream/scripts/sdk-prepare.py"
@@ -97,6 +100,9 @@ if [ ! -f /etc/arch-release ]; then
                         --exclude=./native/tuta/target \
                         --exclude=./native/tuta/upstream/target \
                         --exclude=./native/tuta/upstream/tuta-repo \
+                        --exclude=./native/tuta-unofficial-sdk/target \
+                        --exclude=./native/tuta-unofficial-sdk/upstream/target \
+                        --exclude=./native/tuta-unofficial-sdk/upstream/tuta-repo \
                         --exclude=./native/proton/hylki-proton -cf - . \
                 | tar -C /build -xf -
             HYLKI_APPIMAGE_SRC=/build exec /here/tools/build-appimage.sh
@@ -143,20 +149,31 @@ echo "==> Building the release binary ($APP_ID $VERSION)"
 cd "$ROOT"
 cargo build --release "${FEATURES[@]}"
 
-# The Tuta helper, in every tree from the one that added it. In CI the
-# checkout is here with its git metadata, so the SDK is prepared in place; a
-# copy made by the host side above was prepared before it was made.
+# The Tuta helper, in every tree from the one that added it: tuta-helper
+# from the native/tuta-unofficial-sdk submodule, installed as hylki-tuta (the
+# name the app looks for), or in older trees hylki-tuta from native/tuta. In
+# CI the checkout is here with its git metadata, so the SDK is prepared in
+# place; a copy made by the host side above was prepared before it was made.
 HELPERS=()
-if [ -f native/tuta/Cargo.toml ]; then
+TUTA_DIR=""
+TUTA_BIN=""
+if [ -f native/tuta-unofficial-sdk/Cargo.toml ]; then
+    TUTA_DIR=native/tuta-unofficial-sdk
+    TUTA_BIN=tuta-helper
+elif [ -f native/tuta/Cargo.toml ]; then
+    TUTA_DIR=native/tuta
+    TUTA_BIN=hylki-tuta
+fi
+if [ -n "$TUTA_DIR" ]; then
     echo "==> Building the Tuta helper"
-    if git -C native/tuta/upstream rev-parse --git-dir >/dev/null 2>&1; then
-        if [ -f native/tuta/prepare.sh ]; then
-            sh native/tuta/prepare.sh
+    if git -C "$TUTA_DIR/upstream" rev-parse --git-dir >/dev/null 2>&1; then
+        if [ -f "$TUTA_DIR/prepare.sh" ]; then
+            sh "$TUTA_DIR/prepare.sh"
         else
-            python3 native/tuta/upstream/scripts/sdk-prepare.py
+            python3 "$TUTA_DIR/upstream/scripts/sdk-prepare.py"
         fi
     fi
-    ( cd native/tuta && cargo build --release --locked )
+    ( cd "$TUTA_DIR" && cargo build --release --locked --bin "$TUTA_BIN" )
     HELPERS+=(/usr/bin/hylki-tuta)
 fi
 
@@ -174,8 +191,8 @@ echo "==> Installing into /usr"
 # the binary, so what works there works inside the bundle.
 install -Dm755 target/release/hylki /usr/bin/hylki
 # The helpers, beside hylki, where the app looks for them first.
-if [ -f native/tuta/Cargo.toml ]; then
-    install -Dm755 native/tuta/target/release/hylki-tuta /usr/bin/hylki-tuta
+if [ -n "$TUTA_DIR" ]; then
+    install -Dm755 "$TUTA_DIR/target/release/$TUTA_BIN" /usr/bin/hylki-tuta
 fi
 if [ -f native/proton/go.mod ]; then
     install -Dm755 native/proton/hylki-proton /usr/bin/hylki-proton

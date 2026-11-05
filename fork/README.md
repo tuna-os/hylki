@@ -101,11 +101,12 @@ extensions for 25.08 (see [docs/BUILDING.md](../docs/BUILDING.md)):
 
 ```sh
 git submodule update --init --recursive
-sh native/tuta/prepare.sh
+sh native/tuta-unofficial-sdk/prepare.sh
 flatpak-cargo-generator.py Cargo.lock -o cargo-sources.json
-flatpak-cargo-generator.py native/tuta/Cargo.lock -o native/tuta/cargo-sources.json
 
-rsync -a --delete --exclude=.git --exclude=/target ./ /tmp/hylki-tuna/
+rsync -a --delete --exclude=.git --exclude=/target \
+    --exclude=/native/tuta-unofficial-sdk/target \
+    --exclude=/native/tuta-unofficial-sdk/upstream ./ /tmp/hylki-tuna/
 fork/rebrand.sh /tmp/hylki-tuna
 flatpak-builder --user --install --force-clean \
     --state-dir=/tmp/hylki-tuna-state /tmp/hylki-tuna-build \

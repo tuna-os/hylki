@@ -37,31 +37,41 @@ DEB_IMAGE="${HYLKI_DEB_IMAGE:-docker.io/library/rust:1-trixie}"
 [ -n "${HYLKI_DEB_CONTAINER:-}" ] && OUT=/out
 mkdir -p "$OUT"
 
-# The Tuta helper (native/tuta) builds against the Tuta SDK that
-# native/tuta/prepare.sh writes to native/tuta/prepared from the submodules
-# (through their sdk-prepare.py) and Hylki's own SDK patches. The script
-# checks the submodules' git metadata, so it runs where the checkout is; the
-# Debian container gets a copy without .git, prepared on the host before it
-# was copied in. A tree from before prepare.sh (CI builds older tags with
-# this script) ran sdk-prepare.py alone, and one from before the helper has
-# no native/tuta and packages hylki alone.
-HAS_TUTA=""
-[ -f "$ROOT/native/tuta/Cargo.toml" ] && HAS_TUTA=1
+# The Tuta helper is tuta-helper from tuta-unofficial-sdk (the
+# native/tuta-unofficial-sdk submodule), packaged as hylki-tuta, the name the
+# app looks for and the one that gives it its Hylki identity. It builds
+# against the Tuta SDK that the SDK's prepare.sh writes to its prepared/ from
+# the nested submodules (through their sdk-prepare.py) and the SDK's patches.
+# The script checks the submodules' git metadata, so it runs where the
+# checkout is; the Debian container gets a copy without .git, prepared on the
+# host before it was copied in. Older trees (CI builds older tags with this
+# script) built hylki-tuta from native/tuta, with prepare.sh or, before it,
+# sdk-prepare.py alone; one from before the helper packages hylki alone.
+TUTA_DIR=""
+TUTA_BIN=""
+if [ -f "$ROOT/native/tuta-unofficial-sdk/Cargo.toml" ]; then
+    TUTA_DIR=native/tuta-unofficial-sdk
+    TUTA_BIN=tuta-helper
+elif [ -f "$ROOT/native/tuta/Cargo.toml" ]; then
+    TUTA_DIR=native/tuta
+    TUTA_BIN=hylki-tuta
+fi
+HAS_TUTA="${TUTA_DIR:+1}"
 
 prepare_tuta_sdk() {
     [ -n "$HAS_TUTA" ] || return 0
-    local prepared=native/tuta/prepared
-    [ -f "$ROOT/native/tuta/prepare.sh" ] || prepared=native/tuta/upstream/sdk/generated
-    if git -C "$ROOT/native/tuta/upstream" rev-parse --git-dir >/dev/null 2>&1; then
-        if [ -f "$ROOT/native/tuta/prepare.sh" ]; then
-            sh "$ROOT/native/tuta/prepare.sh"
+    local prepared=$TUTA_DIR/prepared
+    [ -f "$ROOT/$TUTA_DIR/prepare.sh" ] || prepared=$TUTA_DIR/upstream/sdk/generated
+    if git -C "$ROOT/$TUTA_DIR/upstream" rev-parse --git-dir >/dev/null 2>&1; then
+        if [ -f "$ROOT/$TUTA_DIR/prepare.sh" ]; then
+            sh "$ROOT/$TUTA_DIR/prepare.sh"
         else
-            python3 "$ROOT/native/tuta/upstream/scripts/sdk-prepare.py"
+            python3 "$ROOT/$TUTA_DIR/upstream/scripts/sdk-prepare.py"
         fi
     elif [ ! -d "$ROOT/$prepared" ]; then
         echo "$prepared is missing: run" \
              "git submodule update --init --recursive and" \
-             "native/tuta/prepare.sh" >&2
+             "$TUTA_DIR/prepare.sh" >&2
         exit 1
     fi
 }
@@ -70,7 +80,7 @@ build_tuta_helper() {
     [ -n "$HAS_TUTA" ] || return 0
     echo "==> Building the Tuta helper"
     prepare_tuta_sdk
-    ( cd "$ROOT/native/tuta" && cargo build --release --locked )
+    ( cd "$ROOT/$TUTA_DIR" && cargo build --release --locked --bin "$TUTA_BIN" )
 }
 
 # The Proton helper (native/proton) is Go, built from the modules committed
@@ -96,7 +106,7 @@ stage_payload() {
     mkdir -p "$stage/icons/256x256" "$stage/icons/512x512" "$stage/icons/scalable" "$stage/icons/symbolic"
     cp "$ROOT/target/release/hylki"              "$stage/hylki"
     if [ -n "$HAS_TUTA" ]; then
-        cp "$ROOT/native/tuta/target/release/hylki-tuta" "$stage/hylki-tuta"
+        cp "$ROOT/$TUTA_DIR/target/release/$TUTA_BIN" "$stage/hylki-tuta"
     fi
     if [ -n "$HAS_PROTON" ]; then
         cp "$ROOT/native/proton/hylki-proton" "$stage/hylki-proton"
@@ -171,6 +181,9 @@ build_deb() {
                             --exclude=./native/tuta/target \
                             --exclude=./native/tuta/upstream/target \
                             --exclude=./native/tuta/upstream/tuta-repo \
+                            --exclude=./native/tuta-unofficial-sdk/target \
+                            --exclude=./native/tuta-unofficial-sdk/upstream/target \
+                            --exclude=./native/tuta-unofficial-sdk/upstream/tuta-repo \
                             --exclude=./native/proton/hylki-proton -cf - . \
                     | tar -C /build -xf -
                 exec /build/tools/build-packages.sh deb
@@ -240,7 +253,7 @@ build_deb() {
         printf 'Files: *\nCopyright: Hyprlab <hyprlab@proton.me>\nLicense: AGPL-3.0-or-later\n'
         sed 's/^[[:space:]]*$/./; s/^/ /' "$stage/LICENSE"
         if [ -n "$HAS_TUTA" ]; then
-            printf '\nFiles: usr/bin/hylki-tuta\nCopyright: The Postcard and tutabridge authors\n'
+            printf '\nFiles: usr/bin/hylki-tuta\nCopyright: The tuta-unofficial-sdk, Postcard and tutabridge authors\n'
             printf 'License: GPL-3.0-or-later\n See /usr/share/common-licenses/GPL-3.\n'
         fi
         if [ -n "$HAS_PROTON" ]; then

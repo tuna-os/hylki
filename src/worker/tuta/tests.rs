@@ -1708,8 +1708,9 @@ fn live_tuta_reply_threads() {
 /// `watch` that is ready and reports the move of the sent mail to the
 /// Trash. Every message sent is then erased by way of the Trash, and a
 /// sweep for the token removes whatever a failed step left, then ends the
-/// session, also when the test panics. The helper must be on PATH
-/// (`native/tuta/target/debug`).
+/// session, also when the test panics. The helper must be on PATH as
+/// `hylki-tuta`: a link to `tuta-helper` built in
+/// `native/tuta-unofficial-sdk` (docs/BUILDING.md).
 #[test]
 #[ignore]
 fn live_tuta_account() {

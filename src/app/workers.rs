@@ -260,6 +260,7 @@ fn map_event(account_id: u32, event: WorkerEvent) -> AppMsg {
             account_id,
             message,
         },
+        WorkerEvent::EditQueued { id } => AppMsg::EditQueuedOutbox { account_id, id },
         WorkerEvent::Outbox { items } => AppMsg::OutboxItems { account_id, items },
         WorkerEvent::Notice(text) => AppMsg::Notice(text),
         WorkerEvent::DraftSaved {

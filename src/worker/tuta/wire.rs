@@ -6,6 +6,7 @@ use base64::engine::general_purpose::STANDARD;
 use base64::Engine as _;
 use serde_json::Value;
 
+use crate::models::{TutaPasswords, TutaRecipient};
 use crate::worker::helper::{HelperClient, HelperError, HelperSpec, Object, HELPER_TIMEOUT};
 
 /// The helper's executable name.
@@ -33,8 +34,10 @@ const ERROR_CODES: &[&str] = &[
     "sender_unknown",
     "body_too_large",
     "recipient_not_found",
-    "secure_external_unsupported",
     "ordinary_delivery_requires_consent",
+    "password_required",
+    "secure_external_sender_unsupported",
+    "contact_save_failed",
     "send_failed",
     "send_uncertain",
     "login_failed",
@@ -490,6 +493,85 @@ pub(super) fn delete_draft(client: &HelperClient, id: &str) -> Result<(), Helper
     let mut parameters = Object::new();
     parameters.insert("id".into(), id.into());
     client.request("delete_draft", parameters).map(|_| ())
+}
+
+/// The most addresses the helper takes in one `contact_passwords` or
+/// `store_contact_passwords`.
+const CONTACT_BATCH: usize = 100;
+
+/// Which of `addresses` are outside Tuta, and the password the user's Tuta
+/// contacts keep for each, in the order asked, a batch at a time. A
+/// recipient that repeats comes back once; one the reply leaves out was not
+/// answered for, and stays unknown. The passwords are secrets: nothing here
+/// logs them. Blocking.
+pub(super) fn contact_passwords(
+    client: &HelperClient,
+    addresses: &[String],
+) -> Result<Vec<TutaRecipient>, HelperError> {
+    let mut found = Vec::with_capacity(addresses.len());
+    for batch in addresses.chunks(CONTACT_BATCH) {
+        let mut parameters = Object::new();
+        parameters.insert(
+            "addresses".into(),
+            batch.iter().map(|a| Value::from(a.as_str())).collect(),
+        );
+        let reply = client.request("contact_passwords", parameters)?;
+        let Some(Value::Array(rows)) = reply.get("recipients") else {
+            return Err(invalid());
+        };
+        for row in rows {
+            found.push(contact_row(row)?);
+        }
+    }
+    Ok(found)
+}
+
+fn contact_row(row: &Value) -> Result<TutaRecipient, HelperError> {
+    let Value::Object(row) = row else {
+        return Err(invalid());
+    };
+    let address = match row.get("address") {
+        Some(Value::String(a)) if !a.is_empty() => a.clone(),
+        _ => return Err(invalid()),
+    };
+    let external = match row.get("external") {
+        Some(Value::Bool(b)) => Some(*b),
+        None | Some(Value::Null) => None,
+        Some(_) => return Err(invalid()),
+    };
+    let password = match row.get("password") {
+        Some(Value::String(p)) if !p.is_empty() => Some(zeroize::Zeroizing::new(p.clone())),
+        Some(Value::String(_)) | None | Some(Value::Null) => None,
+        Some(_) => return Err(invalid()),
+    };
+    Ok(TutaRecipient {
+        address,
+        external,
+        password,
+    })
+}
+
+/// Keep `passwords` with their recipients in the user's Tuta contacts, as
+/// Tuta's own app does once it has sent, so a message queued for later
+/// finds them there when it goes, and Tuta's apps know them too. Blocking.
+pub(super) fn store_contact_passwords(
+    client: &HelperClient,
+    passwords: &TutaPasswords,
+) -> Result<(), HelperError> {
+    client
+        .request("store_contact_passwords", password_map(passwords))
+        .map(|_| ())
+}
+
+/// `passwords` as the helper takes them: `{"passwords": {address: password}}`.
+pub(super) fn password_map(passwords: &TutaPasswords) -> Object {
+    let map: Object = passwords
+        .iter()
+        .map(|(address, password)| (address.to_string(), Value::from(password)))
+        .collect();
+    let mut parameters = Object::new();
+    parameters.insert("passwords".into(), Value::Object(map));
+    parameters
 }
 
 /// File the whole message `raw` in `folder`, as Tuta's own app imports a

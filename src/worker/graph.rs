@@ -199,6 +199,7 @@ impl<E: Fn(WorkerEvent)> GraphWorker<E> {
         let emit = &|ev| name_labels(&self.account, &self.emit, ev);
         match req {
             MailRequest::AskServer(ask) => self.on_ask_server(ask).await,
+            MailRequest::TutaRecipients(ask) => ask.not_tuta(),
             MailRequest::FindText { gen, terms, paths } => {
                 self.on_find_text(gen, terms, paths).await
             }

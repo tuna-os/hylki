@@ -32,6 +32,11 @@ pub(crate) struct ComposeAccount {
     /// Set for a send-as alias (#34): the full From to put on the wire
     /// ("Name <alias@host>"). `None` sends as the account itself.
     pub(crate) alias_from: Option<String>,
+    /// The account is a Tuta account: the composer offers Confidential,
+    /// and asks the account about the recipients.
+    pub(crate) tuta: bool,
+    /// A Tuta account's messages start confidential (Settings → Accounts).
+    pub(crate) confidential_default: bool,
 }
 
 /// Initial field contents (empty for a new message; populated for reply/forward).
@@ -111,6 +116,10 @@ pub(crate) struct ComposePrefill {
     /// An AI assistant prepared the message (`crate::mcp`): the composer
     /// says so above it, with every recipient it was given.
     pub(crate) assistant: bool,
+    /// How a Tuta account was to send the message being picked up again
+    /// (a draft, a queued or unsent message), with any passwords still in
+    /// memory. `None` starts as the From account says.
+    pub(crate) tuta: Option<crate::models::TutaDelivery>,
 }
 
 /// Everything the compose pane needs to open.

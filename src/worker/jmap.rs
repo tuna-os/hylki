@@ -239,6 +239,7 @@ impl<E: Fn(WorkerEvent)> JmapWorker<E> {
         match req {
             MailRequest::Locate { message_id } => self.on_locate(message_id).await,
             MailRequest::AskServer(ask) => self.on_ask_server(ask).await,
+            MailRequest::TutaRecipients(ask) => ask.not_tuta(),
             MailRequest::FindText { gen, terms, paths } => {
                 self.on_find_text(gen, terms, paths).await
             }

@@ -32,6 +32,7 @@ mod suggest;
 mod tests;
 mod text_diff;
 mod translate;
+mod tuta;
 mod types;
 
 use cloud::not_signed_in;
@@ -179,6 +180,21 @@ impl Component for Compose {
                             #[watch]
                             set_visible: model.narrow,
                             connect_clicked => ComposeInput::OverflowMenu,
+                        },
+                        // Tuta's Confidential (a Tuta From only), a lock as
+                        // in Tuta's own app: closed while it is on.
+                        #[name = "confidential_btn"]
+                        pack_end = &gtk::ToggleButton {
+                            add_css_class: "pgp-toggle",
+                            #[watch]
+                            set_icon_name: tuta::lock_icon(model.tuta.confidential),
+                            #[watch]
+                            set_tooltip_text: Some(&tuta::confidential_tooltip(model.tuta.confidential)),
+                            #[watch]
+                            set_visible: model.tuta.active && !model.narrow,
+                            connect_toggled[sender] => move |b| {
+                                sender.input_sender().emit(ComposeInput::ToggleConfidential(b.is_active()));
+                            },
                         },
                         // OpenPGP (#133): only offered where a gpg exists.
                         #[name = "encrypt_btn"]
@@ -417,6 +433,17 @@ impl Component for Compose {
         let request_receipt = prefill.receipt.unwrap_or(false);
         let importance = prefill.importance;
         let send_at = prefill.send_at;
+        // A message picked up again keeps how it was to go, and any
+        // passwords still in memory; a new one starts as its From says.
+        let tuta = match prefill.tuta.clone() {
+            Some(delivery) => tuta::TutaCompose {
+                confidential: delivery.confidential,
+                touched: true,
+                passwords: delivery.passwords,
+                ..Default::default()
+            },
+            None => tuta::TutaCompose::default(),
+        };
         let current_sig = accounts
             .get(selected)
             .map(|a| a.signature.clone())
@@ -611,6 +638,8 @@ impl Component for Compose {
             edit_loss: None,
             edit_bar: assistant_edit::new_edit_bar(),
             last_edit: None,
+            tuta,
+            tuta_bar: tuta::TutaBar::new(&sender),
         };
         model.from_account = model
             .accounts
@@ -629,6 +658,7 @@ impl Component for Compose {
             widgets.sign_btn.set_active(true);
         }
         widgets.editor_holder.append(&model.editor.widget);
+        widgets.toolbar_root.add_top_bar(&model.tuta_bar.root);
         if prefill.assistant {
             let banner = assistant::banner(&prefill, &model.own_domains);
             widgets.toolbar_root.add_top_bar(&banner);
@@ -686,6 +716,10 @@ impl Component for Compose {
         load_suggestions(own_addresses, &sender);
 
         wire_recipient_rows(&widgets, &sender);
+
+        // Once the fields are filled: whether the From is a Tuta account,
+        // and its question about the recipients.
+        model.follow_tuta_account(&widgets, &sender);
 
         wire_subject(&widgets, &sender);
 
@@ -828,7 +862,10 @@ impl Component for Compose {
 
                 ComposeInput::CustomFrom(on) => self.on_custom_from(on, widgets),
 
-                ComposeInput::AccountChanged => self.on_account_changed(widgets),
+                ComposeInput::AccountChanged => {
+                    self.on_account_changed(widgets);
+                    self.follow_tuta_account(widgets, &sender);
+                }
 
                 ComposeInput::InsertSignature(place) => self.on_insert_signature(place, widgets),
 
@@ -933,6 +970,24 @@ impl Component for Compose {
                         widgets.sign_btn.set_active(true);
                     }
                 }
+                ComposeInput::ToggleConfidential(on) => self.on_toggle_confidential(on, widgets),
+                ComposeInput::RecipientsChanged => self.on_recipients_changed(widgets, &sender),
+                ComposeInput::TutaLookup(token) => self.on_tuta_lookup(token, widgets, &sender),
+                ComposeInput::TutaKnown {
+                    generation,
+                    asked,
+                    result,
+                } => self.on_tuta_known(generation, asked, result, widgets, &sender),
+                ComposeInput::TutaPasswords => self.on_tuta_passwords(widgets, &sender),
+                ComposeInput::TutaPassword { address, typed } => {
+                    self.on_tuta_password(&address, &typed, widgets)
+                }
+                ComposeInput::ConfirmWeakPasswords => {
+                    self.tuta.weak_ok = Some(self.tuta.revision);
+                    sender.input_sender().emit(ComposeInput::Send);
+                }
+                // Whatever was asked next is sent behind it.
+                ComposeInput::ConsentOrdinary => self.tuta.ordinary_consent = true,
                 ComposeInput::ToggleReceipt(on) => {
                     self.request_receipt = on;
                     self.fields_dirty = true;

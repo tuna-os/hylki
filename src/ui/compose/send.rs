@@ -253,6 +253,9 @@ impl Compose {
             receipt_report: None,
             merged: false,
             send_at: self.send_at,
+            // A draft, a template or an automatic save carries no
+            // password; `finish_send` adds them to what is sent.
+            tuta: self.tuta.delivery(None),
         }
     }
 
@@ -390,6 +393,11 @@ impl Compose {
         if self.pgp_check_pending(idx, [&to, &cc, &bcc], sender) {
             return;
         }
+        // Tuta (a Tuta From only): who is outside Tuta, their passwords,
+        // or consent to ordinary mail.
+        if self.tuta_send_pending(widgets, sender) {
+            return;
+        }
         let from_account_id = self.accounts.get(idx).map(|a| a.id).unwrap_or(1);
         let from_alias = match self.chosen_from(widgets) {
             Ok(from) => from,
@@ -516,6 +524,7 @@ impl Compose {
     /// Hand the message to the app to send, and close the composer.
     pub(super) fn finish_send(&mut self, fields: OutgoingFields, sender: &ComponentSender<Self>) {
         let mut out = self.outgoing_message(fields);
+        out.tuta = self.tuta_delivery_for([&out.to, &out.cc, &out.bcc]);
         // The direction of each line (#524) is written in only here, on
         // the way out: a draft goes back into the editor, which finds it
         // itself, and a `dir` kept there would outlast a line rewritten in

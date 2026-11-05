@@ -220,6 +220,14 @@ impl AppModel {
             custom_from: e.from,
             attachments,
             cloud_uploads: extra.cloud,
+            // A Tuta draft opens with Confidential as it was saved.
+            tuta: e
+                .confidential
+                .map(|confidential| crate::models::TutaDelivery {
+                    confidential,
+                    ordinary_confirmed: false,
+                    passwords: Default::default(),
+                }),
             ..Default::default()
         };
         self.show_draft_composer(m, prefill, inline, sender);

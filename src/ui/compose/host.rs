@@ -275,6 +275,18 @@ impl Compose {
         // The OpenPGP toggles go through their buttons so the
         // toggled handlers keep the model and the buttons agreeing.
         let mut pgp = Vec::new();
+        // Tuta's Confidential, through its button for the same reason.
+        if self.tuta.active {
+            let confidential = widgets.confidential_btn.clone();
+            pgp.push(
+                MenuEntry::new(i18n("Confidential"), move || {
+                    confidential.set_active(!confidential.is_active())
+                })
+                .icon(super::tuta::lock_icon(self.tuta.confidential))
+                .checked(self.tuta.confidential)
+                .tooltip(super::tuta::confidential_tooltip(self.tuta.confidential)),
+            );
+        }
         if crate::mail::pgp::available() {
             let sign = widgets.sign_btn.clone();
             pgp.push(

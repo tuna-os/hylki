@@ -35,6 +35,9 @@ pub(crate) struct OutboxItem {
     /// The Message-ID of the message a forward forwards, to mark once it
     /// goes (#454); a reply's original is in its own In-Reply-To.
     pub(crate) forwards: String,
+    /// How a Tuta account sends it, as the composer chose; the default for
+    /// every other account. Never holds a password.
+    pub(crate) delivery: super::TutaDelivery,
     /// Set only for a message still on its way out (#434), never stored:
     /// what it is doing ("Sending…"), shown instead of how long it waited.
     pub(crate) status: String,

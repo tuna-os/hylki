@@ -48,6 +48,9 @@ pangocairo = "0.20"
 keyring = { version = "3", default-features = false, features = ["async-secret-service", "async-io", "crypto-rust"] }
 tracing = "0.1"
 tracing-subscriber = { version = "0.3", features = ["env-filter"] }
+# Wipes the passwords typed for Tuta recipients outside Tuta from memory
+# once a message no longer holds them. Already in the graph.
+zeroize = "1"
 
 # Async mail stack (runs on a dedicated worker thread + tokio runtime)
 tokio = { version = "1", features = ["rt-multi-thread", "net", "sync", "io-util", "time", "macros", "io-std"] }

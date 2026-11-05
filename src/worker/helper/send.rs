@@ -25,6 +25,10 @@ pub(in crate::worker) enum SendOutcome {
     /// Nothing went out, and the same message would be refused again: it
     /// goes back to the composer. The text says why.
     Refused(String),
+    /// [`SendOutcome::Refused`] because a recipient outside Tuta has no
+    /// password: a queued message goes back to the composer for one. Only
+    /// Tuta's helper refuses a send so.
+    PasswordRequired(String),
     /// It may have gone out. Never sent again on its own.
     Uncertain,
 }
@@ -43,8 +47,9 @@ pub(in crate::worker) fn send_outcome(error: &HelperError) -> SendOutcome {
         | "unsupported_version"
         | "request_failed" => SendOutcome::Uncertain,
         // Decided before anything was written to the server.
+        "password_required" => SendOutcome::PasswordRequired(error.message()),
         "recipient_not_found"
-        | "secure_external_unsupported"
+        | "secure_external_sender_unsupported"
         | "confidential_send_unsupported"
         | "invalid_recipient"
         | "sender_unknown"
@@ -268,9 +273,10 @@ pub(in crate::worker) fn parse(raw: &[u8]) -> Result<mail_parser::Message<'_>, H
         .ok_or_else(|| HelperError::new("invalid_request"))
 }
 
-/// A helper's `send` parameters for a built message and its envelope.
-/// Bcc is only in the envelope, so it is the envelope less To and Cc.
-/// `forwards` is [`exact_forwards`] of the message's `forwards`.
+/// The `send` parameters both helpers take for a built message and its
+/// envelope; how it is to go is each provider's to add. Bcc is only in the
+/// envelope, so it is the envelope less To and Cc. `forwards` is
+/// [`exact_forwards`] of the message's `forwards`.
 pub(in crate::worker) fn send_parameters(
     raw: &[u8],
     envelope: &[String],
@@ -284,13 +290,6 @@ pub(in crate::worker) fn send_parameters(
             .map(|address| (String::new(), address.clone()))
             .collect()
     })?;
-    // Ordinary delivery is what each provider's own app does when it is
-    // not given a choice: Tuta's goes confidential when every recipient is
-    // on Tuta and ordinary for everyone otherwise, and Proton's encrypts for
-    // every recipient it has a key for. It is confirmed here as those apps
-    // confirm it by sending; a helper refuses ordinary delivery unconfirmed.
-    parameters.insert("delivery".into(), "ordinary".into());
-    parameters.insert("ordinary_confirmed".into(), true.into());
     parameters.extend(thread_parameters(&message, envelope, forwards));
     Ok(parameters)
 }

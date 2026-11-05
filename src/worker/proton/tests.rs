@@ -957,6 +957,7 @@ async fn each_way_a_send_ends_is_told_apart() {
             SendOutcome::Sent => "sent",
             SendOutcome::Uncertain => "uncertain",
             SendOutcome::Refused(_) => "refused",
+            SendOutcome::PasswordRequired(_) => "password",
             SendOutcome::Failed(_) => "failed",
         };
         assert_eq!(got, expected, "{answer}");

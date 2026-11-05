@@ -130,6 +130,7 @@ impl<E: Fn(WorkerEvent)> Pop3Worker<E> {
                 account_id,
                 "POP3 servers cannot search: search already finds all that was downloaded",
             ),
+            MailRequest::TutaRecipients(ask) => ask.not_tuta(),
             MailRequest::Locate { message_id } => {
                 // No folders to search here beyond what the cache already
                 // held: answer "not found" so the app can report the miss.

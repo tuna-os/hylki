@@ -46,6 +46,14 @@ pub(crate) enum AppMsg {
     SendDueScheduled,
     /// Try to send everything waiting, across accounts.
     RetryAllOutbox,
+    /// A worker could not send a queued message as it is: open it in the
+    /// composer to be fixed (a Tuta recipient's missing password).
+    EditQueuedOutbox { account_id: u32, id: u32 },
+    /// A composer asks a Tuta account about its recipients.
+    TutaRecipients {
+        account_id: u32,
+        ask: crate::worker::TutaRecipientsAsk,
+    },
 
     // ---- on_notifications (notifications.rs) ----
     /// A worker reported something noteworthy that isn't a failure.

@@ -133,7 +133,8 @@ CREATE TABLE IF NOT EXISTS outbox (
     attempts    INTEGER NOT NULL DEFAULT 0,
     last_error  TEXT    NOT NULL DEFAULT '',
     send_at     INTEGER,
-    forwards    TEXT    NOT NULL DEFAULT ''
+    forwards    TEXT    NOT NULL DEFAULT '',
+    delivery    TEXT    NOT NULL DEFAULT ''
 );
 CREATE TABLE IF NOT EXISTS attachments_checked (
     account_id  INTEGER NOT NULL,

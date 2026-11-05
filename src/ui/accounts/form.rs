@@ -276,6 +276,8 @@ pub(super) fn read_account(
             .and_then(|i| crate::config::FolderSort::ALL.get(i as usize).copied()),
         sign_by_default: widgets.form.sign_default_row.is_active(),
         plain_subject: !widgets.form.hide_subject_row.is_active(),
+        unconfidential_by_default: protocol == Protocol::Tuta
+            && !widgets.form.confidential_default_row.is_active(),
         graph_directory: protocol == Protocol::Graph
             && widgets.form.graph_directory_row.is_active(),
         graph_directory_only: protocol == Protocol::Graph
@@ -561,6 +563,10 @@ pub(super) fn fill_editor(widgets: &AccountsWindowWidgets, acc: &AccountConfig) 
     widgets.form.hide_subject_row.set_active(!acc.plain_subject);
     widgets
         .form
+        .confidential_default_row
+        .set_active(!acc.unconfidential_by_default);
+    widgets
+        .form
         .reply_copies_row
         .set_selected(acc.reply_copies.index());
     // Show the effective label (custom, or the email address).
@@ -683,6 +689,7 @@ pub(super) fn clear_editor(widgets: &AccountsWindowWidgets) {
     widgets.form.folder_sort_row.set_selected(0);
     widgets.form.sign_default_row.set_active(false);
     widgets.form.hide_subject_row.set_active(true);
+    widgets.form.confidential_default_row.set_active(true);
     widgets.form.reply_copies_row.set_selected(0);
     widgets.form.graph_directory_row.set_active(false);
     widgets.form.directory_only_row.set_active(false);
@@ -832,6 +839,8 @@ pub(super) fn apply_protocol(widgets: &AccountsWindowWidgets) {
         widgets.form.mailbox_pass_row.set_visible(false);
         widgets.form.verify_row.set_visible(false);
     }
+    // Confidential mail and its passwords are Tuta's own.
+    widgets.form.tuta_group.set_visible(protocol == Protocol::Tuta);
     // Only where the servers are shown at all (OAuth providers hide them).
     let servers_shown = widgets.form.host_row.is_visible();
     widgets.form.smtp_row.set_visible(servers_shown && !jmap);

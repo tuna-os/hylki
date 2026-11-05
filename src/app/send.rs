@@ -50,6 +50,8 @@ pub(super) fn machine_message(
         importance: Default::default(),
         receipt_report: None,
         merged: false,
+        // Nobody composed it to choose: as Tuta's own app sends unasked.
+        tuta: Default::default(),
     }
 }
 

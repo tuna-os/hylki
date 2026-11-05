@@ -79,6 +79,8 @@ fn account_identities(
         .unwrap_or_default();
     let pgp_key = cfg.and_then(|c| c.pgp_key.clone());
     let sign_default = cfg.is_some_and(|c| c.sign_by_default);
+    let tuta = cfg.is_some_and(|c| c.protocol == config::Protocol::Tuta);
+    let confidential_default = cfg.is_some_and(|c| !c.unconfidential_by_default);
     let mut identities = vec![ComposeAccount {
         id,
         label,
@@ -88,6 +90,8 @@ fn account_identities(
         pgp_key: pgp_key.clone(),
         sign_default,
         alias_from: None,
+        tuta,
+        confidential_default,
     }];
     for alias in cfg.map(|c| c.aliases.as_slice()).unwrap_or_default() {
         let (name, addr) = split_identity(&alias.identity);
@@ -108,6 +112,8 @@ fn account_identities(
             pgp_key: pgp_key.clone(),
             sign_default,
             alias_from: Some(display),
+            tuta,
+            confidential_default,
         });
     }
     // A JMAP server's own identities (#346), unless the account
@@ -139,6 +145,8 @@ fn account_identities(
             pgp_key: pgp_key.clone(),
             sign_default,
             alias_from: Some(display),
+            tuta,
+            confidential_default,
         });
     }
     identities
@@ -332,6 +340,9 @@ impl AppModel {
                 }
                 ComposeOutput::DirectoryError(text) => AppMsg::DirectoryError(text),
                 ComposeOutput::ShowContacts => AppMsg::ShowContactsPage,
+                ComposeOutput::TutaRecipients { account_id, ask } => {
+                    AppMsg::TutaRecipients { account_id, ask }
+                }
             })
     }
 

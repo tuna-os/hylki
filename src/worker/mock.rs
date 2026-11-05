@@ -45,6 +45,41 @@ fn demo_attachment_files(message_id: u32) -> Vec<crate::models::Attachment> {
     ]
 }
 
+/// The demo's answer to a Tuta composer (HYLKI_SHOWCASE_TUTA makes a demo
+/// account one): Tuta's own domains are on Tuta, anyone else is outside,
+/// and the contacts keep a password for Priya alone, so the composer shows
+/// a recipient with one and others without.
+fn demo_tuta_recipients(ask: crate::worker::TutaRecipientsAsk) {
+    const TUTA_DOMAINS: [&str; 6] = [
+        "tuta.com",
+        "tuta.io",
+        "tutanota.com",
+        "tutanota.de",
+        "tutamail.com",
+        "keemail.me",
+    ];
+    let crate::worker::TutaRecipientsAsk { addresses, answer } = ask;
+    let recipients = addresses
+        .into_iter()
+        .map(|address| {
+            let domain = address
+                .rsplit('@')
+                .next()
+                .unwrap_or_default()
+                .to_lowercase();
+            let external = !TUTA_DOMAINS.contains(&domain.as_str());
+            let password = (external && address.to_lowercase().starts_with("priya"))
+                .then(|| zeroize::Zeroizing::new("Lantern-Orbit-42!".to_string()));
+            crate::models::TutaRecipient {
+                address,
+                external: Some(external),
+                password,
+            }
+        })
+        .collect();
+    let _ = answer.send(Ok(recipients));
+}
+
 /// The demo's sender verdict for a message that has a header block: the
 /// real check, run over those headers, so the card's seal and the
 /// Unsubscribe banner appear as they would for fetched mail.
@@ -106,6 +141,7 @@ pub(super) async fn run_mock(
                 done: true,
             }),
             MailRequest::AskServer(ask) => ask.refuse(0, "the demo has no server"),
+            MailRequest::TutaRecipients(ask) => demo_tuta_recipients(ask),
             MailRequest::Locate { message_id } => {
                 // No folders to search here beyond what the cache already
                 // held: answer "not found" so the app can report the miss.

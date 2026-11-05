@@ -110,6 +110,33 @@ pub(crate) enum ComposeInput {
     ShowPreview(String),
     /// The OpenPGP Encrypt toggle; encrypting turns signing on too.
     ToggleEncrypt(bool),
+    /// Tuta's Confidential toggle.
+    ToggleConfidential(bool),
+    /// A recipient field changed: the Tuta marks, and the question of who
+    /// is outside Tuta once the typing rests.
+    RecipientsChanged,
+    /// The typing rested: ask the Tuta account, unless this is not the
+    /// last change's token.
+    TutaLookup(u64),
+    /// The Tuta account said who is outside Tuta, for the From of this
+    /// `generation`.
+    TutaKnown {
+        generation: u64,
+        asked: Vec<String>,
+        result: Result<Vec<crate::models::TutaRecipient>, String>,
+    },
+    /// Open the passwords of the recipients outside Tuta.
+    TutaPasswords,
+    /// A password was typed for `address`: `typed` holds it, or nothing
+    /// when it was cleared.
+    TutaPassword {
+        address: String,
+        typed: crate::models::TutaPasswords,
+    },
+    /// Send Anyway, with the weak passwords as they are.
+    ConfirmWeakPasswords,
+    /// The user agreed to send this message as ordinary mail.
+    ConsentOrdinary,
     /// The Send menu's read receipt check (#520).
     ToggleReceipt(bool),
     /// The Send menu's importance, picked (#563).
@@ -333,4 +360,10 @@ pub(crate) enum ComposeOutput {
     DirectoryError(String),
     /// The contacts modal asked for Hylki's Contacts view.
     ShowContacts,
+    /// Ask the Tuta account `account_id` who of the recipients is outside
+    /// Tuta.
+    TutaRecipients {
+        account_id: u32,
+        ask: crate::worker::TutaRecipientsAsk,
+    },
 }

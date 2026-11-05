@@ -24,6 +24,7 @@ pub(super) fn sample_account() -> AccountConfig {
         folder_sort: None,
         sign_by_default: false,
         plain_subject: false,
+        unconfidential_by_default: false,
         graph_directory: false,
         graph_directory_only: false,
         graph_label_names: false,
@@ -121,6 +122,7 @@ pub(super) fn sample_outgoing() -> OutgoingMessage {
         importance: Default::default(),
         receipt_report: None,
         merged: false,
+        tuta: Default::default(),
     }
 }
 
@@ -140,6 +142,7 @@ pub(super) fn queued(from: &str, rcpts: &[&str]) -> crate::models::OutboxItem {
         last_error: String::new(),
         send_at: None,
         forwards: String::new(),
+        delivery: Default::default(),
         status: String::new(),
     }
 }

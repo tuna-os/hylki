@@ -45,7 +45,7 @@ impl<E: Fn(WorkerEvent)> ProtonWorker<E> {
                     sent: false,
                 });
             }
-            SendOutcome::Refused(e) => {
+            SendOutcome::Refused(e) | SendOutcome::PasswordRequired(e) => {
                 send_failed(
                     cache,
                     account_id,

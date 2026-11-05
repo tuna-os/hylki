@@ -455,6 +455,7 @@ impl<E: Fn(WorkerEvent)> ProtonWorker<E> {
             MailRequest::CreateFolder { .. }
             | MailRequest::RenameFolder { .. }
             | MailRequest::DeleteFolder { .. } => self.on_folder_change(),
+            MailRequest::TutaRecipients(ask) => ask.not_tuta(),
             MailRequest::SetHiddenFolders { paths } => {
                 self.state.hidden = paths;
                 self.sync_folders().await;

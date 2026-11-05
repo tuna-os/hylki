@@ -264,6 +264,13 @@ pub(super) fn mime_message(item: &Object) -> Result<Vec<u8>, HelperError> {
             }
         }
     }
+    // Tuta's own mark, which a draft has to keep when it is opened again.
+    if let Some(confidential) = header.get("confidential").and_then(Value::as_bool) {
+        put(
+            crate::models::TUTA_CONFIDENTIAL_HEADER,
+            if confidential { "yes" } else { "no" },
+        );
+    }
     let attachments = match item.get("attachments") {
         Some(Value::Array(attachments)) => attachments.as_slice(),
         None | Some(Value::Null) => &[],

@@ -1,5 +1,6 @@
 //! The Tuta handlers for sending, Send Later, and drafts and templates,
-//! which Tuta keeps as drafts on the server.
+//! which Tuta keeps as drafts on the server; and the composer's question
+//! of who is outside Tuta.
 
 use super::TutaWorker;
 use crate::i18n::i18n;
@@ -13,8 +14,10 @@ use crate::worker::outbox::{drop_superseded_outbox, schedule_send, send_failed, 
 use crate::worker::tuta::index::{run, tuta_load_folder};
 use crate::worker::tuta::ops::{emit_folder, tuta_ensure_folder, tuta_move_ids};
 use crate::worker::tuta::send::{draft_parameters, tuta_list_sent, tuta_send_message};
-use crate::worker::tuta::wire::{delete_draft, save_draft};
-use crate::worker::{OutgoingMessage, WorkerEvent};
+use crate::worker::tuta::wire::{
+    contact_passwords, delete_draft, save_draft, store_contact_passwords,
+};
+use crate::worker::{OutgoingMessage, TutaRecipientsAsk, WorkerEvent};
 
 impl<E: Fn(WorkerEvent)> TutaWorker<E> {
     /// Send now. Tuta files the Sent copy itself, so `sent_path` is unused.
@@ -32,12 +35,31 @@ impl<E: Fn(WorkerEvent)> TutaWorker<E> {
                 drop_superseded_outbox(cache, account_id, &message, emit);
                 self.drop_draft_origin(&message).await;
                 let cache = self.cache.as_ref();
-                tuta_list_sent(&self.account, account_id, cache, &mut self.state, &self.emit)
-                    .await;
+                tuta_list_sent(
+                    &self.account,
+                    account_id,
+                    cache,
+                    &mut self.state,
+                    &self.emit,
+                )
+                .await;
                 (self.emit)(WorkerEvent::Sent);
                 (self.emit)(WorkerEvent::SendDone { ticket, sent: true });
             }
             SendOutcome::Failed(e) => {
+                // Queued below without the passwords: put them in the
+                // contacts now, where the Outbox reads them when it sends.
+                // Offline, that would only fail too.
+                if e != crate::worker::offline_text() {
+                    if let Err(why) = self.store_passwords(&message).await {
+                        tracing::warn!(
+                            "[account {account_id}] could not save the passwords of a message queued after a failed send to the Tuta contacts: {}",
+                            why.code
+                        );
+                    }
+                }
+                let cache = self.cache.as_ref();
+                let emit = &self.emit;
                 send_failed(
                     cache,
                     account_id,
@@ -53,7 +75,7 @@ impl<E: Fn(WorkerEvent)> TutaWorker<E> {
                     sent: false,
                 });
             }
-            SendOutcome::Refused(e) => {
+            SendOutcome::Refused(e) | SendOutcome::PasswordRequired(e) => {
                 send_failed(
                     cache,
                     account_id,
@@ -81,9 +103,12 @@ impl<E: Fn(WorkerEvent)> TutaWorker<E> {
 
     /// Send Later (#145): into the Outbox until its time, and the draft it
     /// was written from off the server, as the send itself would take it.
+    /// The Outbox keeps no password, so a confidential message's go into
+    /// the Tuta contacts first, where the Outbox reads them when it sends.
     pub(super) async fn on_send_later(&mut self, mut message: Box<OutgoingMessage>, ticket: u64) {
         let at = message.send_at.unwrap_or_default();
         restore_msgid_case(self.cache.as_ref(), &mut message);
+        let stored = self.store_passwords(&message).await;
         schedule_send(
             self.cache.as_ref(),
             self.account_id,
@@ -93,11 +118,56 @@ impl<E: Fn(WorkerEvent)> TutaWorker<E> {
             at,
             &self.emit,
         );
+        if let Err(e) = stored {
+            tracing::warn!(
+                "[account {}] could not save the passwords of a scheduled message to the Tuta contacts: {}",
+                self.account_id,
+                e.code
+            );
+            (self.emit)(WorkerEvent::error(i18n(
+                "The passwords could not be saved to your Tuta contacts. If they are still missing when the message is due, it comes back to you to enter them again.",
+            )));
+        }
         (self.emit)(WorkerEvent::SendDone {
             ticket,
             sent: false,
         });
         self.drop_draft_origin(&message).await;
+    }
+
+    /// Keep a confidential message's passwords in the Tuta contacts; there
+    /// is nothing to do for any other message.
+    async fn store_passwords(&self, message: &OutgoingMessage) -> Result<(), HelperError> {
+        let tuta = &message.tuta;
+        if !tuta.confidential || tuta.passwords.is_empty() {
+            return Ok(());
+        }
+        let client = self.state.client(&self.account)?;
+        let passwords = tuta.passwords.clone();
+        run(move || store_contact_passwords(&client, &passwords)).await
+    }
+
+    /// Who of the composer's recipients is outside Tuta, with the passwords
+    /// the contacts keep for them. Answered off the worker's queue: a
+    /// composer waiting on its recipients must not wait behind a sync.
+    pub(super) fn on_tuta_recipients(&self, ask: TutaRecipientsAsk) {
+        let account_id = self.account_id;
+        let client = match self.state.client(&self.account) {
+            Ok(client) => client,
+            Err(e) => return ask.refuse(e.message()),
+        };
+        let TutaRecipientsAsk { addresses, answer } = ask;
+        tokio::task::spawn_blocking(move || {
+            let found = contact_passwords(&client, &addresses).map_err(|e| {
+                tracing::warn!(
+                    "[account {account_id}] could not ask the Tuta contacts about {} recipient(s): {}",
+                    addresses.len(),
+                    e.code
+                );
+                e.message()
+            });
+            let _ = answer.send(found);
+        });
     }
 
     /// The draft of this account `message` was opened from, if any.
@@ -152,11 +222,14 @@ impl<E: Fn(WorkerEvent)> TutaWorker<E> {
         if autosave.is_none() {
             (self.emit)(WorkerEvent::Status(saving_text(template)));
         }
+        // A draft never carries a password: only whether it is to go
+        // confidential.
         let mut message = OutgoingMessage {
             sign: false,
             encrypt: false,
             ..*message
         };
+        message.tuta.passwords = Default::default();
         restore_msgid_case(self.cache.as_ref(), &mut message);
         let saved = self.save_draft_in(&message, &path, template).await;
         (self.emit)(WorkerEvent::Status(String::new()));
@@ -188,8 +261,8 @@ impl<E: Fn(WorkerEvent)> TutaWorker<E> {
         let email = build_draft(&self.account, message).map_err(|e| e.to_string())?;
         let message_id = draft_message_id(&email);
         let forwards = exact_forwards(self.cache.as_ref(), &message.forwards);
-        let parameters =
-            draft_parameters(&email.formatted(), &forwards).map_err(|e| e.message())?;
+        let parameters = draft_parameters(&email.formatted(), &forwards, message.tuta.confidential)
+            .map_err(|e| e.message())?;
         let drafts = self.state.path_of(crate::models::FolderKind::Drafts);
         if template {
             tuta_ensure_folder(

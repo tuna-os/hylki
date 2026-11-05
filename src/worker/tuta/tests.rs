@@ -14,13 +14,13 @@ use super::messages::tuta_message;
 use super::mime::mime_message;
 use super::ops::{tuta_move_uids, tuta_set_seen};
 use super::push::{spawn_tuta_push, PushSignal};
-use super::send::{draft_parameters, tuta_flush_outbox, tuta_send_raw};
+use super::send::{draft_parameters, tuta_flush_outbox, tuta_send_parameters, tuta_send_raw};
 use super::wire::{sync_page, FolderRow};
 use super::TutaWorker;
 use crate::cache::Cache;
 use crate::config::{AccountConfig, Protocol};
 use crate::models::{DraftOrigin, FolderKind, Message};
-use crate::worker::helper::send::{send_outcome, send_parameters, SendOutcome};
+use crate::worker::helper::send::{send_outcome, SendOutcome};
 use crate::worker::helper::{HelperClient, HelperError, Object, Transport};
 use crate::worker::ids::hash_uid;
 use crate::worker::test_support::{queued, sample_account, sample_outgoing};
@@ -519,7 +519,7 @@ fn send_parameters_come_from_the_built_message_and_its_envelope() {
         "BOB@example.com".to_string(),
         "secret@example.com".to_string(),
     ];
-    let p = send_parameters(RAW, &envelope, "").unwrap();
+    let p = tuta_send_parameters(RAW, &envelope, "", &Default::default()).unwrap();
     assert_eq!(p["sender"], "me@tuta.com");
     assert_eq!(p["sender_name"], "Me");
     assert_eq!(
@@ -535,8 +535,10 @@ fn send_parameters_come_from_the_built_message_and_its_envelope() {
     assert_eq!(p["subject"], "Plans");
     let body = p["body_html"].as_str().unwrap();
     assert!(body.starts_with("<pre>See you &lt;soon&gt;"), "{body}");
-    assert_eq!(p["delivery"], "ordinary");
+    // Nothing composed it to choose: as Tuta's own app sends unasked.
+    assert_eq!(p["confidential"], false);
     assert_eq!(p["ordinary_confirmed"], true);
+    assert!(!p.contains_key("delivery") && !p.contains_key("passwords"));
     assert_eq!(p["attachments"], json!([]));
     // New mail sits in no conversation yet.
     for key in ["in_reply_to", "references", "action"] {
@@ -567,7 +569,9 @@ async fn each_way_a_send_ends_is_told_apart() {
         (Err("helper_failed"), "uncertain"),
         (Err("timeout"), "uncertain"),
         (Err("recipient_not_found"), "refused"),
-        (Err("secure_external_unsupported"), "refused"),
+        (Err("password_required"), "password"),
+        (Err("secure_external_sender_unsupported"), "refused"),
+        (Err("ordinary_delivery_requires_consent"), "refused"),
         (Err("invalid_recipient"), "refused"),
         (Err("invalid_thread"), "refused"),
         (Err("send_failed"), "failed"),
@@ -584,12 +588,14 @@ async fn each_way_a_send_ends_is_told_apart() {
             RAW.to_vec(),
             vec!["ann@example.com".into()],
             String::new(),
+            Default::default(),
         )
         .await;
         let got = match &outcome {
             SendOutcome::Sent => "sent",
             SendOutcome::Uncertain => "uncertain",
             SendOutcome::Refused(_) => "refused",
+            SendOutcome::PasswordRequired(_) => "password",
             SendOutcome::Failed(_) => "failed",
         };
         assert_eq!(got, expected, "{answer:?}");
@@ -597,16 +603,24 @@ async fn each_way_a_send_ends_is_told_apart() {
     }
     // A Tuta address with no key is refused with words of its own, and
     // never sent unencrypted instead.
-    for code in ["recipient_not_found", "secure_external_unsupported"] {
+    for code in ["recipient_not_found", "secure_external_sender_unsupported"] {
         match send_outcome(&HelperError::new(code)) {
             SendOutcome::Refused(why) => assert!(why.contains("Tuta"), "{why}"),
             other => panic!("{other:?}"),
         }
     }
-    // The old refusal of every Tuta-only send is gone: such a send goes.
-    assert!(!super::wire::SPEC
-        .codes
-        .contains(&"confidential_send_unsupported"));
+    // The old refusals of every Tuta-only send, and of every password
+    // send, are gone: such sends go.
+    for gone in [
+        "confidential_send_unsupported",
+        "secure_external_unsupported",
+    ] {
+        assert!(!super::wire::SPEC.codes.contains(&gone), "{gone}");
+    }
+    match send_outcome(&HelperError::new("password_required")) {
+        SendOutcome::PasswordRequired(why) => assert!(why.contains("password"), "{why}"),
+        other => panic!("{other:?}"),
+    }
     // The helper missing sent nothing: it can wait in the Outbox.
     assert!(matches!(
         send_outcome(&HelperError::new("helper_missing")),
@@ -644,7 +658,14 @@ async fn a_reply_or_forward_tells_the_helper_what_it_answers() {
         let envelope: Vec<String> = rcpts.iter().map(|r| r.to_string()).collect();
         let forwards = forwards.to_string();
         async move {
-            let outcome = tuta_send_raw(client_for(transport), raw, envelope, forwards).await;
+            let outcome = tuta_send_raw(
+                client_for(transport),
+                raw,
+                envelope,
+                forwards,
+                Default::default(),
+            )
+            .await;
             assert_eq!(outcome, SendOutcome::Sent);
             let request = asked.lock().unwrap()[0].clone();
             request
@@ -718,12 +739,15 @@ fn a_draft_names_what_it_answers_too() {
         &["ann@example.com", "bob@example.com"],
         "<Parent.1@Example.com>",
     );
-    let p = draft_parameters(&reply, "").unwrap();
+    let p = draft_parameters(&reply, "", false).unwrap();
     assert_eq!(p["in_reply_to"], "Parent.1@Example.com");
     assert_eq!(p["action"], "reply_all");
-    let forward = draft_parameters(RAW, "Fwd.1@Example.com").unwrap();
+    let forward = draft_parameters(RAW, "Fwd.1@Example.com", true).unwrap();
+    // Whether it is to go confidential, and never a password.
+    assert_eq!(forward["confidential"], true);
+    assert!(!forward.contains_key("passwords"));
     assert_eq!(forward["action"], "forward");
-    let new = draft_parameters(RAW, "").unwrap();
+    let new = draft_parameters(RAW, "", false).unwrap();
     assert!(!new.contains_key("in_reply_to") && !new.contains_key("action"));
 }
 

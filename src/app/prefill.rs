@@ -259,6 +259,7 @@ pub(super) fn unsent_prefill(m: crate::worker::OutgoingMessage) -> ComposePrefil
         original_plain: false,
         typed_html: String::new(),
         assistant: false,
+        tuta: Some(m.tuta),
     }
 }
 
@@ -471,7 +472,17 @@ mod tests {
             importance: crate::models::Importance::High,
             receipt_report: None,
             merged: false,
+            tuta: crate::models::TutaDelivery {
+                confidential: true,
+                ordinary_confirmed: false,
+                passwords: {
+                    let mut p = crate::models::TutaPasswords::default();
+                    p.set("a@x", "Correct-Horse-7");
+                    p
+                },
+            },
         };
+        let tuta = m.tuta.clone();
         let p = unsent_prefill(m);
         assert_eq!(
             p.body_html,
@@ -483,5 +494,8 @@ mod tests {
         assert!(p.resumed && p.encrypt && !p.template);
         assert_eq!(p.importance, crate::models::Importance::High);
         assert_eq!((p.outbox_origin, p.send_at), (Some(7), Some(5)));
+        // A message that comes back keeps its delivery, and the passwords
+        // typed for it, so they need not be typed again.
+        assert_eq!(p.tuta, Some(tuta));
     }
 }

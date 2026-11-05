@@ -31,8 +31,8 @@ use crate::cache::Cache;
 use crate::config::AccountConfig;
 use crate::i18n::{i18n, i18n_f};
 use crate::worker::auth::resolve_keyring_passwords;
-use crate::worker::index_queue::index_pause;
 use crate::worker::helper::HelperError;
+use crate::worker::index_queue::index_pause;
 use crate::worker::lane::{related_from_cache, thread_summaries_with_members};
 use crate::worker::offline::Offline;
 use crate::worker::outbox::{delete_queued, emit_outbox};
@@ -344,7 +344,11 @@ impl<E: Fn(WorkerEvent)> TutaWorker<E> {
                     .map(|(path, _)| path.clone())
             })
             .collect();
-        if let Some(open) = self.open.clone().filter(|o| everything && !paths.contains(o)) {
+        if let Some(open) = self
+            .open
+            .clone()
+            .filter(|o| everything && !paths.contains(o))
+        {
             paths.push(open);
         }
         for path in paths {
@@ -390,6 +394,7 @@ impl<E: Fn(WorkerEvent)> TutaWorker<E> {
                 account_id,
                 i18n("Tuta's servers cannot search encrypted mail: search finds what is on this computer"),
             ),
+            MailRequest::TutaRecipients(ask) => self.on_tuta_recipients(ask),
             MailRequest::FindText { gen, .. } => (self.emit)(WorkerEvent::TextFound {
                 gen,
                 hits: Vec::new(),
@@ -625,6 +630,6 @@ impl<E: Fn(WorkerEvent)> TutaWorker<E> {
 }
 
 #[cfg(test)]
-mod tests;
-#[cfg(test)]
 mod handler_tests;
+#[cfg(test)]
+mod tests;

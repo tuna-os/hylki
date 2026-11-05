@@ -30,8 +30,9 @@ use crate::worker::proton::index::{emit_folder, proton_load_folder, run, ProtonS
 use crate::worker::{offline_text, OutgoingMessage, WorkerEvent};
 
 /// The helper's `send` parameters: the shared parts and threading (see
-/// [`send_parameters`]), and the Message-ID the message was built with, so
-/// the copy in Sent and every recipient's carry the one Hylki threads by.
+/// [`send_parameters`]), ordinary delivery, and the Message-ID the message
+/// was built with, so the copy in Sent and every recipient's carry the one
+/// Hylki threads by.
 /// `forwards` is [`exact_forwards`] of the message's `forwards`.
 pub(super) fn proton_send_parameters(
     raw: &[u8],
@@ -39,6 +40,11 @@ pub(super) fn proton_send_parameters(
     forwards: &str,
 ) -> Result<Object, HelperError> {
     let mut parameters = send_parameters(raw, envelope, forwards)?;
+    // Ordinary delivery, confirmed: what Proton's own apps do when not given
+    // a choice. It only means a recipient without a key is not refused;
+    // the helper refuses ordinary delivery unconfirmed.
+    parameters.insert("delivery".into(), "ordinary".into());
+    parameters.insert("ordinary_confirmed".into(), true.into());
     let parsed = MessageParser::default().parse_headers(raw);
     let message_id = parsed
         .as_ref()
@@ -178,7 +184,7 @@ pub(super) async fn proton_flush_outbox(
                 )));
                 break;
             }
-            SendOutcome::Failed(e) | SendOutcome::Refused(e) => {
+            SendOutcome::Failed(e) | SendOutcome::Refused(e) | SendOutcome::PasswordRequired(e) => {
                 c.record_outbox_failure(item.id, &e);
                 emit(WorkerEvent::error(i18n_f(
                     "Still could not send “{subject}”: {e}",

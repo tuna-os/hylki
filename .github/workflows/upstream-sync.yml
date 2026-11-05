@@ -1,0 +1,170 @@
+name: Upstream sync
+
+# The fork (tuna-os/hylki) follows hyprlab/hylki: once a day, upstream's main
+# is merged into ours with a merge commit, checked, and pushed. Never a rebase
+# or a force push, so the fork's history and every tag on it stay valid.
+#
+# A merge that conflicts, breaks the fork's touchpoint list, no longer
+# rebrands, or no longer builds pushes nothing. It opens one issue labelled
+# upstream-sync instead (or updates the open one), naming what went wrong and
+# the conflicting files; the next clean run closes it. See fork/README.md.
+#
+# GITHUB_TOKEN cannot push a commit that changes .github/workflows. When
+# upstream touches its workflows, the push fails and the issue says so: merge
+# that one by hand, or give the repository an UPSTREAM_SYNC_TOKEN secret (a
+# token with the workflow scope), which is used for the push when present.
+
+on:
+  schedule:
+    - cron: '23 5 * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  issues: write
+
+concurrency:
+  group: upstream-sync
+  cancel-in-progress: false
+
+jobs:
+  sync:
+    name: merge hyprlab/hylki main
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    # The app's build dependencies (GTK 4, libadwaita 1.7+, WebKitGTK 6) as
+    # the RPM build has them; Ubuntu's libadwaita is too old.
+    container: registry.fedoraproject.org/fedora:44
+    env:
+      GH_TOKEN: ${{ github.token }}
+      GH_REPO: ${{ github.repository }}
+      UPSTREAM: https://github.com/hyprlab/hylki.git
+
+    steps:
+      - name: Install the build dependencies
+        run: |
+          dnf install -y --setopt=install_weak_deps=False git gh rsync tar gzip gcc gcc-c++ \
+            gtk4-devel libadwaita-devel webkitgtk6.0-devel poppler-glib-devel \
+            openssl-devel gettext-devel wayland-devel gettext python3
+          curl -fsSL https://sh.rustup.rs | sh -s -- -y --profile minimal
+          echo "$HOME/.cargo/bin" >> "$GITHUB_PATH"
+
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 0
+          token: ${{ secrets.UPSTREAM_SYNC_TOKEN || github.token }}
+
+      - name: Merge
+        id: merge
+        run: |
+          git config --global --add safe.directory '*'
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git remote add upstream "$UPSTREAM"
+          git fetch --no-tags upstream main
+          echo "upstream=$(git rev-parse upstream/main)" >> "$GITHUB_OUTPUT"
+          if git merge-base --is-ancestor upstream/main HEAD; then
+            echo "main already contains hyprlab/hylki $(git rev-parse --short upstream/main)"
+            echo "changed=false" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          if ! git merge --no-ff --no-edit -m "chore(sync): merge hyprlab/hylki main" upstream/main; then
+            git diff --name-only --diff-filter=U > "$RUNNER_TEMP/conflicts.txt"
+            git merge --abort
+            echo "conflicts in:" >&2
+            cat "$RUNNER_TEMP/conflicts.txt" >&2
+            exit 1
+          fi
+          echo "changed=true" >> "$GITHUB_OUTPUT"
+
+      - name: Check the touchpoints
+        id: touchpoints
+        if: steps.merge.outputs.changed == 'true'
+        run: fork/check-touchpoints.sh
+
+      - uses: actions/cache@v4
+        if: steps.merge.outputs.changed == 'true'
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            ${{ runner.temp }}/target
+          key: upstream-sync-${{ hashFiles('Cargo.lock') }}
+          restore-keys: upstream-sync-
+
+      - name: Rebrand and check the build
+        id: build
+        if: steps.merge.outputs.changed == 'true'
+        # On a copy, as packaging does: the merged tree stays as merged.
+        env:
+          CARGO_TARGET_DIR: ${{ runner.temp }}/target
+        run: |
+          tree="$RUNNER_TEMP/hylki-tuna"
+          rsync -a --delete --exclude=.git ./ "$tree/"
+          fork/rebrand.sh "$tree"
+          cd "$tree"
+          cargo check --locked --all-targets
+
+      - name: Push
+        id: push
+        if: steps.merge.outputs.changed == 'true'
+        run: git push origin HEAD:main
+
+      - name: Close the sync issue
+        if: success()
+        run: |
+          number=$(gh issue list --label upstream-sync --state open --json number --jq '.[0].number // empty')
+          if [ -n "$number" ]; then
+            gh issue close "$number" --comment "Resolved: main contains hyprlab/hylki ${{ steps.merge.outputs.upstream }} ($GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID)."
+          fi
+
+      - name: Open or update the sync issue
+        if: failure()
+        env:
+          MERGE: ${{ steps.merge.outcome }}
+          TOUCHPOINTS: ${{ steps.touchpoints.outcome }}
+          BUILD: ${{ steps.build.outcome }}
+          PUSH: ${{ steps.push.outcome }}
+          UPSTREAM_SHA: ${{ steps.merge.outputs.upstream }}
+        run: |
+          run="$GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID"
+          if [ "$MERGE" = failure ]; then
+            what="Merging hyprlab/hylki main conflicts."
+          elif [ "$TOUCHPOINTS" = failure ]; then
+            what="The merge changes upstream files the fork modifies without listing them (fork/check-touchpoints.sh)."
+          elif [ "$BUILD" = failure ]; then
+            what="The merged tree does not rebrand (fork/rebrand.sh) or does not build (cargo check)."
+          elif [ "$PUSH" = failure ]; then
+            what="The merge was clean but could not be pushed. If upstream changed .github/workflows, GITHUB_TOKEN may not push it: merge by hand, or set an UPSTREAM_SYNC_TOKEN secret with the workflow scope."
+          else
+            what="The sync job failed before it could merge."
+          fi
+          {
+            echo "The daily upstream sync stopped, and nothing was pushed to main."
+            echo
+            echo "$what"
+            echo
+            echo "- upstream: hyprlab/hylki main at \`${UPSTREAM_SHA:-unknown}\`"
+            echo "- run: $run"
+            if [ -s "$RUNNER_TEMP/conflicts.txt" ]; then
+              echo
+              echo "Conflicting files:"
+              echo
+              # Markdown code spans, not command substitution.
+              # shellcheck disable=SC2016
+              sed 's/.*/- `&`/' "$RUNNER_TEMP/conflicts.txt"
+            fi
+            echo
+            echo "To resolve, merge by hand on a clone (\`git fetch upstream main && git merge upstream/main\`), fix, check with \`fork/rebrand.sh\` on a copy, and push to main. fork/README.md has the details."
+          } > "$RUNNER_TEMP/issue.md"
+          gh label create upstream-sync --color d93f0b \
+            --description 'The daily merge of hyprlab/hylki needs a hand' 2>/dev/null || true
+          number=$(gh issue list --label upstream-sync --state open --json number --jq '.[0].number // empty')
+          if [ -n "$number" ]; then
+            gh issue edit "$number" --body-file "$RUNNER_TEMP/issue.md"
+            gh issue comment "$number" --body "Still failing: $run"
+          else
+            gh issue create --title 'Upstream sync needs attention' --label upstream-sync \
+              --body-file "$RUNNER_TEMP/issue.md"
+          fi

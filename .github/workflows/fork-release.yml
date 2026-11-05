@@ -1,0 +1,193 @@
+name: Hylki Tuna release
+run-name: Hylki Tuna ${{ inputs.ref || github.ref_name }}
+
+# Builds Hylki Tuna (org.tunaos.Hylki), the fork's own app, as a Flatpak
+# bundle for x86_64 and aarch64 and attaches both to the tag's GitHub release.
+# The checkout is rebranded by fork/rebrand.sh first; it writes
+# fork/org.tunaos.Hylki.yml, which builds that rebranded tree with the same
+# recipe as upstream's manifest: the runtime, poppler, the dictionaries, and
+# the Tuta (Rust) and Proton (Go) helpers. See fork/README.md.
+#
+# The bundles are unsigned single files. A signed OSTree repository on Pages,
+# which `flatpak update` could follow, is not published yet.
+
+on:
+  push:
+    tags:
+      - 'v*-tuna*'
+  workflow_dispatch:
+    inputs:
+      ref:
+        description: 'Tag, branch or SHA to build; a v*-tuna* tag also publishes the release'
+        required: false
+        default: 'main'
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    name: ${{ matrix.arch }}
+    runs-on: ${{ matrix.runner }}
+    timeout-minutes: 120
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - arch: x86_64
+            runner: ubuntu-24.04
+          - arch: aarch64
+            runner: ubuntu-24.04-arm
+    outputs:
+      tag: ${{ steps.version.outputs.tag }}
+      version: ${{ steps.version.outputs.version }}
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.ref || github.ref }}
+          # The Tuta helper's upstream (native/tuta/upstream) and the
+          # tutanota checkout inside it, which sdk-prepare.py reads.
+          submodules: recursive
+
+      - name: Pick the version
+        id: version
+        run: |
+          ref="${{ inputs.ref || github.ref_name }}"
+          case "$ref" in
+            v*-tuna*) tag="$ref"; version="${ref#v}" ;;
+            *) tag=""; version="$(sed -n 's/^version = "\(.*\)"/\1/p' Cargo.toml | head -1)-tuna.g$(git rev-parse --short HEAD)" ;;
+          esac
+          case "${{ matrix.arch }}" in
+            x86_64) bundle="org.tunaos.Hylki-$version.flatpak" ;;
+            *) bundle="org.tunaos.Hylki-$version-${{ matrix.arch }}.flatpak" ;;
+          esac
+          {
+            echo "tag=$tag"
+            echo "version=$version"
+            echo "bundle=$bundle"
+          } >> "$GITHUB_OUTPUT"
+          echo "building Hylki Tuna $version for ${{ matrix.arch }}${tag:+, release $tag}"
+
+      - name: Install flatpak-builder
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y flatpak flatpak-builder python3-aiohttp python3-tomlkit
+
+      - name: Install the GNOME runtime and the Rust and Go SDK extensions
+        run: |
+          flatpak remote-add --user --if-not-exists flathub https://flathub.org/repo/flathub.flatpakrepo
+          install_ref() {
+            # `--no-static-deltas` and the retries: Flathub's CDN occasionally
+            # lists a delta it then 404s, as in build-arm64.yml.
+            for attempt in 1 2 3; do
+              if flatpak install --user -y --noninteractive --no-static-deltas flathub "$@"; then
+                return 0
+              fi
+              echo "install attempt $attempt failed for $*; retrying"
+              sleep 30
+            done
+            return 1
+          }
+          install_ref org.gnome.Platform//50 org.gnome.Sdk//50
+          install_ref org.freedesktop.Sdk.Extension.rust-stable//25.08
+          # The Proton helper (native/proton) is Go.
+          install_ref org.freedesktop.Sdk.Extension.golang//25.08
+
+      - name: Prepare the Tuta SDK
+        # The helper builds against an SDK generated from the tutanota
+        # submodule plus Hylki's own SDK patches; the prepared tree is not
+        # tracked, so it is made here and carried in with the checkout.
+        run: sh native/tuta/prepare.sh
+
+      - name: Vendor the crate sources
+        # As build-arm64.yml does: cargo-sources.json comes out of each
+        # Cargo.lock, for the offline build inside the sandbox.
+        run: |
+          curl -fsSL -o /tmp/gen-cargo-sources.py \
+            https://raw.githubusercontent.com/flatpak/flatpak-builder-tools/master/cargo/flatpak-cargo-generator.py
+          vendor() {
+            for attempt in 1 2 3; do
+              if python3 /tmp/gen-cargo-sources.py "$1/Cargo.lock" -o "$1/cargo-sources.json" 2>/tmp/gen.err; then
+                break
+              fi
+              cat /tmp/gen.err
+              module="$(sed -n "s/.*No module named '\([^']*\)'.*/\1/p" /tmp/gen.err | head -1)"
+              if [ -z "$module" ]; then
+                echo "generator failed for a reason other than a missing module" >&2
+                exit 1
+              fi
+              echo "installing missing module: $module (attempt $attempt)"
+              pip install --break-system-packages "$module"
+            done
+            test -s "$1/cargo-sources.json"
+          }
+          vendor .
+          vendor native/tuta
+
+      - name: Rebrand
+        # This checkout is thrown away after the job, so it is rebranded in place.
+        run: HYLKI_REBRAND_IN_PLACE=1 fork/rebrand.sh "$PWD"
+
+      - name: Build
+        run: |
+          flatpak-builder --user --force-clean --disable-rofiles-fuse \
+            --state-dir="$RUNNER_TEMP/flatpak-state" \
+            --repo="$RUNNER_TEMP/repo" --default-branch=stable \
+            "$RUNNER_TEMP/build-dir" fork/org.tunaos.Hylki.yml
+
+      - name: Check the result
+        run: |
+          files="$RUNNER_TEMP/build-dir/files"
+          case "${{ matrix.arch }}" in
+            x86_64) want_arch='x86-64' ;;
+            aarch64) want_arch='ARM aarch64' ;;
+          esac
+          for bin in hylki hylki-tuta hylki-proton; do
+            file "$files/bin/$bin" | tee /dev/stderr | grep -q "$want_arch"
+          done
+          want="$(sed -n 's/^version = "\(.*\)"/\1/p' Cargo.toml | head -1)"
+          grep -q "version=\"$want\"" "$files/share/metainfo/org.tunaos.Hylki.metainfo.xml" \
+            || { echo "built app is not $want" >&2; exit 1; }
+          grep -qx 'Name=Hylki Tuna' "$files/share/applications/org.tunaos.Hylki.desktop"
+
+      - name: Bundle
+        run: |
+          flatpak build-bundle --arch=${{ matrix.arch }} \
+            --runtime-repo=https://flathub.org/repo/flathub.flatpakrepo \
+            "$RUNNER_TEMP/repo" "${{ steps.version.outputs.bundle }}" org.tunaos.Hylki stable
+          sha256sum "${{ steps.version.outputs.bundle }}"
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: hylki-tuna-${{ matrix.arch }}
+          path: ${{ steps.version.outputs.bundle }}
+          retention-days: 30
+          if-no-files-found: error
+
+  release:
+    name: GitHub release
+    needs: build
+    if: needs.build.outputs.tag != ''
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    env:
+      GH_TOKEN: ${{ github.token }}
+      GH_REPO: ${{ github.repository }}
+      TAG: ${{ needs.build.outputs.tag }}
+      VERSION: ${{ needs.build.outputs.version }}
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: hylki-tuna-*
+          merge-multiple: true
+
+      - name: Attach the bundles
+        run: |
+          sha256sum ./*.flatpak > SHA256SUMS
+          if ! gh release view "$TAG" >/dev/null 2>&1; then
+            gh release create "$TAG" --verify-tag --title "Hylki Tuna $VERSION" \
+              --notes "Hylki Tuna $VERSION: Hylki with native Tuta and Proton Mail accounts, as a Flatpak bundle for x86_64 and aarch64. Install with \`flatpak install --user org.tunaos.Hylki-$VERSION.flatpak\`; it sits beside upstream Hylki and keeps its own data."
+          fi
+          gh release upload "$TAG" ./*.flatpak SHA256SUMS --clobber

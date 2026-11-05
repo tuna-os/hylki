@@ -1,3 +1,6 @@
+> **This is Hylki Tuna**, the TunaOS fork of Hylki with native Tuta and Proton Mail accounts.
+> It follows upstream daily; see [fork/README.md](fork/README.md).
+
 <p align="center">
   <img src="data/repo/logo.png" width="120" alt="Hylki logo">
 </p>

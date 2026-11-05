@@ -6,6 +6,7 @@
 .github/workflows/build-arm64.yml
 .gitignore
 CHANGELOG.md
+README.md
 accounts.toml.example
 co.hyprlab.Hylki.yml
 data/brands/README.md

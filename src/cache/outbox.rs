@@ -56,11 +56,22 @@ impl Cache {
         );
     }
 
+    /// Note how a queued Tuta message is to go: [`TutaDelivery::stored`],
+    /// which never holds a password.
+    ///
+    /// [`TutaDelivery::stored`]: crate::models::TutaDelivery::stored
+    pub(crate) fn set_outbox_delivery(&self, id: u32, delivery: &str) {
+        let _ = self.conn.execute(
+            "UPDATE outbox SET delivery = ?1 WHERE id = ?2",
+            params![delivery, id],
+        );
+    }
+
     /// Everything waiting for this account, oldest first (the order it is sent in).
     pub(crate) fn outbox_items(&self, account_id: u32) -> Vec<crate::models::OutboxItem> {
         let mut stmt = match self.conn.prepare(
             "SELECT id, account_id, from_addr, rcpts, recipients, subject, preview, raw, \
-             sent_path, queued_at, attempts, last_error, send_at, forwards FROM outbox \
+             sent_path, queued_at, attempts, last_error, send_at, forwards, delivery FROM outbox \
              WHERE account_id = ?1 ORDER BY queued_at, id",
         ) {
             Ok(s) => s,
@@ -86,6 +97,7 @@ impl Cache {
                 last_error: r.get(11)?,
                 send_at: r.get(12)?,
                 forwards: r.get(13)?,
+                delivery: crate::models::TutaDelivery::from_stored(&r.get::<_, String>(14)?),
                 status: String::new(),
             })
         });

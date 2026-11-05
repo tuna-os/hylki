@@ -3,12 +3,18 @@
 //! and attachments), so the message `build_email` produces is read back
 //! into those parts. Tuta files the Sent copy itself.
 //!
-//! Delivery is chosen as Tuta's own app chooses it: a message only to Tuta
+//! Delivery is chosen as Tuta's own app chooses it. A message only to Tuta
 //! addresses goes end-to-end encrypted ("confidential"), each recipient's
-//! key loaded by the helper through Tuta's SDK, and a message that also
-//! goes outside Tuta goes as ordinary mail (encrypted in transit only) to
-//! everyone. A Tuta address the server has no key for is refused, never
-//! sent unencrypted instead.
+//! key loaded by the helper through Tuta's SDK. A message that also goes
+//! outside Tuta goes as the composer chose: confidential, each outside
+//! recipient reading it in Tuta's web app behind a password, or ordinary
+//! mail (encrypted in transit only) to everyone, which the user agreed to.
+//! A Tuta address the server has no key for is refused, never sent
+//! unencrypted instead.
+//!
+//! The passwords never reach the Outbox: a queued confidential message
+//! reads them again from the Tuta contacts the helper keeps them in, and
+//! one that finds a recipient without goes back to the composer.
 //!
 //! A reply or a forward names the message it answers: the helper creates
 //! the draft in that message's conversation, as Tuta's own app does, and
@@ -22,12 +28,13 @@ use serde_json::{json, Value};
 use crate::cache::Cache;
 use crate::config::AccountConfig;
 use crate::i18n::{i18n, i18n_f};
-use crate::models::{FolderKind, OutboxItem};
+use crate::models::{FolderKind, OutboxItem, TutaDelivery, TutaPasswords};
 use crate::worker::compose::build::build_email;
 use crate::worker::helper::{HelperClient, HelperError, Object};
 use crate::worker::outbox::{due_outbox_items, emit_outbox, uncertain_mark, uncertain_text};
 use crate::worker::tuta::index::{run, tuta_load_folder, TutaState};
 use crate::worker::tuta::ops::emit_folder;
+use crate::worker::tuta::wire::{contact_passwords, password_map};
 use crate::worker::{offline_text, OutgoingMessage, WorkerEvent};
 
 /// How a send ended.
@@ -40,6 +47,9 @@ pub(super) enum SendOutcome {
     /// Nothing went out, and the same message would be refused again: it
     /// goes back to the composer. The text says why.
     Refused(String),
+    /// [`SendOutcome::Refused`] because a recipient outside Tuta has no
+    /// password: a queued message goes back to the composer for one.
+    PasswordRequired(String),
     /// It may have gone out. Never sent again on its own.
     Uncertain,
 }
@@ -58,8 +68,9 @@ pub(super) fn send_outcome(error: &HelperError) -> SendOutcome {
         | "unsupported_version"
         | "request_failed" => SendOutcome::Uncertain,
         // Decided before anything was written to the server.
+        "password_required" => SendOutcome::PasswordRequired(error.message()),
         "recipient_not_found"
-        | "secure_external_unsupported"
+        | "secure_external_sender_unsupported"
         | "invalid_recipient"
         | "sender_unknown"
         | "body_too_large"
@@ -279,13 +290,15 @@ fn parse(raw: &[u8]) -> Result<mail_parser::Message<'_>, HelperError> {
         .ok_or_else(|| HelperError::new("invalid_request"))
 }
 
-/// The helper's `send` parameters for a built message and its envelope.
-/// Bcc is only in the envelope, so it is the envelope less To and Cc.
-/// `forwards` is [`exact_forwards`] of the message's `forwards`.
+/// The helper's `send` parameters for a built message, its envelope and
+/// how it is to go. Bcc is only in the envelope, so it is the envelope
+/// less To and Cc. `forwards` is [`exact_forwards`] of the message's
+/// `forwards`.
 pub(super) fn send_parameters(
     raw: &[u8],
     envelope: &[String],
     forwards: &str,
+    delivery: &TutaDelivery,
 ) -> Result<Object, HelperError> {
     let message = parse(raw)?;
     let mut parameters = message_parts(&message, |named| {
@@ -295,27 +308,36 @@ pub(super) fn send_parameters(
             .map(|address| (String::new(), address.clone()))
             .collect()
     })?;
-    // Ordinary delivery is what Tuta's own app does when it is not given
-    // a choice: confidential when every recipient is on Tuta, ordinary for
-    // everyone otherwise, which is confirmed here as that app confirms it
-    // by sending. The helper refuses ordinary delivery unconfirmed.
-    parameters.insert("delivery".into(), "ordinary".into());
-    parameters.insert("ordinary_confirmed".into(), true.into());
+    // The helper decides who is outside Tuta. Confidential with someone
+    // outside needs each one's password, and is refused rather than sent
+    // without; not confidential with someone outside needs the user's
+    // consent, and is refused without it.
+    parameters.insert("confidential".into(), delivery.confidential.into());
+    parameters.insert(
+        "ordinary_confirmed".into(),
+        delivery.ordinary_confirmed.into(),
+    );
+    if delivery.confidential && !delivery.passwords.is_empty() {
+        parameters.extend(password_map(&delivery.passwords));
+    }
     parameters.extend(thread_parameters(&message, envelope, forwards));
     Ok(parameters)
 }
 
 /// The helper's `save_draft` parameters for a built draft, which keeps its
-/// Bcc in a header, as a draft is the user's own copy. It is not marked
-/// confidential: that only asks Tuta's own app to send it to outside
-/// addresses behind a password, which Hylki does not offer, and mail to
-/// Tuta addresses goes end-to-end encrypted whatever the mark.
+/// Bcc in a header, as a draft is the user's own copy, and whether it is
+/// to go confidential, so Tuta's own apps open it the same way. A draft
+/// never carries a password.
 ///
 /// `forwards` is [`exact_forwards`] of the message's `forwards`.
-pub(super) fn draft_parameters(raw: &[u8], forwards: &str) -> Result<Object, HelperError> {
+pub(super) fn draft_parameters(
+    raw: &[u8],
+    forwards: &str,
+    confidential: bool,
+) -> Result<Object, HelperError> {
     let message = parse(raw)?;
     let mut parameters = message_parts(&message, |_| addresses_of(message.bcc()))?;
-    parameters.insert("confidential".into(), false.into());
+    parameters.insert("confidential".into(), confidential.into());
     let recipients: Vec<String> = [message.to(), message.cc(), message.bcc()]
         .into_iter()
         .flat_map(addresses_of)
@@ -326,18 +348,20 @@ pub(super) fn draft_parameters(raw: &[u8], forwards: &str) -> Result<Object, Hel
 }
 
 /// Send built bytes. Any reply with a result means the mail went. Its
-/// fields are the server's ids, which nothing here needs, and whether it
-/// went confidentially, with each recipient's key version and fingerprint
-/// as the helper loaded them: Tuta verifies no key unless the user has
-/// pinned it, and Hylki pins none yet, so those only go to the debug log.
+/// fields are the server's ids, which nothing here needs; whether it went
+/// confidentially, with each recipient's key version and fingerprint as
+/// the helper loaded them (Tuta verifies no key unless the user has pinned
+/// it, and Hylki pins none yet, so those only go to the debug log); and
+/// whether the passwords reached the Tuta contacts.
 pub(super) async fn tuta_send_raw(
     client: HelperClient,
     raw: Vec<u8>,
     envelope: Vec<String>,
     forwards: String,
+    delivery: TutaDelivery,
 ) -> SendOutcome {
     let sent = run(move || {
-        let parameters = send_parameters(&raw, &envelope, &forwards)?;
+        let parameters = send_parameters(&raw, &envelope, &forwards, &delivery)?;
         client.request("send", parameters)
     })
     .await;
@@ -347,9 +371,20 @@ pub(super) async fn tuta_send_raw(
                 .get("recipients")
                 .and_then(Value::as_array)
                 .map_or(0, Vec::len);
+            let outside = reply
+                .get("secure_external")
+                .and_then(Value::as_array)
+                .map_or(0, Vec::len);
             match reply.get("confidential").and_then(Value::as_bool) {
-                Some(true) => tracing::debug!("tuta: sent end-to-end encrypted to {keys} key(s)"),
+                Some(true) => tracing::debug!(
+                    "tuta: sent end-to-end encrypted to {keys} key(s) and {outside} password(s)"
+                ),
                 _ => tracing::debug!("tuta: sent as ordinary mail"),
+            }
+            // The mail went; only the next message to these recipients
+            // misses the passwords, and asks for them again.
+            if reply.get("contacts_saved").and_then(Value::as_bool) == Some(false) {
+                tracing::warn!("tuta: sent, but the passwords were not saved to the contacts");
             }
             SendOutcome::Sent
         }
@@ -394,7 +429,14 @@ pub(super) async fn tuta_send_message(
         .iter()
         .map(|a| a.to_string())
         .collect();
-    tuta_send_raw(client, email.formatted(), envelope, forwards).await
+    tuta_send_raw(
+        client,
+        email.formatted(),
+        envelope,
+        forwards,
+        message.tuta.clone(),
+    )
+    .await
 }
 
 /// List the Sent folder, where Tuta filed the copy, so it joins the
@@ -436,8 +478,35 @@ fn sendable(
     sendable
 }
 
+/// How a queued message goes: as it was queued, and, when confidential,
+/// with the passwords the user's Tuta contacts keep for its recipients,
+/// read now since the Outbox keeps none. Which recipients are outside Tuta
+/// is the helper's to say again at the send.
+async fn queued_delivery(
+    client: &HelperClient,
+    item: &OutboxItem,
+) -> Result<TutaDelivery, HelperError> {
+    let mut delivery = item.delivery.clone();
+    if !delivery.confidential {
+        return Ok(delivery);
+    }
+    let lookup = client.clone();
+    let rcpts = item.rcpts.clone();
+    let recipients = run(move || contact_passwords(&lookup, &rcpts)).await?;
+    let mut passwords = TutaPasswords::default();
+    for r in recipients.iter().filter(|r| r.external != Some(false)) {
+        if let Some(password) = &r.password {
+            passwords.set(&r.address, password);
+        }
+    }
+    delivery.passwords = passwords;
+    Ok(delivery)
+}
+
 /// The Outbox for a Tuta account: each due message goes as it was queued.
-/// One that may have gone out is marked and kept, never retried.
+/// One that may have gone out is marked and kept, never retried. One that
+/// is confidential and finds an outside recipient without a password in
+/// the contacts stays queued, and opens in the composer for it.
 pub(super) async fn tuta_flush_outbox(
     cache: Option<&Cache>,
     account_id: u32,
@@ -463,14 +532,27 @@ pub(super) async fn tuta_flush_outbox(
     let mut sent_any = false;
     for item in items {
         let forwards = exact_forwards(cache, &item.forwards);
-        match tuta_send_raw(
-            client.clone(),
-            item.raw.clone(),
-            item.rcpts.clone(),
-            forwards,
-        )
-        .await
-        {
+        let outcome = match queued_delivery(&client, &item).await {
+            Ok(delivery) => {
+                tuta_send_raw(
+                    client.clone(),
+                    item.raw.clone(),
+                    item.rcpts.clone(),
+                    forwards,
+                    delivery,
+                )
+                .await
+            }
+            Err(e) => {
+                tracing::warn!(
+                    "[account {account_id}] could not read the passwords of queued message {} from the Tuta contacts: {}",
+                    item.id,
+                    e.code
+                );
+                SendOutcome::Failed(e.message())
+            }
+        };
+        match outcome {
             SendOutcome::Sent => {
                 sent_any = true;
                 c.delete_outbox(item.id);
@@ -482,6 +564,15 @@ pub(super) async fn tuta_flush_outbox(
                     "“{subject}”: {e}",
                     &[("subject", &item.subject), ("e", &why)],
                 )));
+                break;
+            }
+            SendOutcome::PasswordRequired(e) => {
+                c.record_outbox_failure(item.id, &e);
+                emit(WorkerEvent::error(i18n_f(
+                    "Could not send “{subject}”: {e}",
+                    &[("subject", &item.subject), ("e", &e)],
+                )));
+                emit(WorkerEvent::EditQueued { id: item.id });
                 break;
             }
             SendOutcome::Failed(e) | SendOutcome::Refused(e) => {

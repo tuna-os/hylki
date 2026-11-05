@@ -190,6 +190,9 @@ impl AppModel {
             original_plain: false,
             typed_html: String::new(),
             assistant: false,
+            // As it was to go, but its passwords live in the Tuta contacts:
+            // the composer reads them from there again.
+            tuta: Some(item.delivery.clone()),
         };
         // The Outbox stays the folder on screen: its list is still what's listed,
         // so its toolbar has to stay too. Leaving it would strand the user in a
@@ -313,6 +316,14 @@ impl AppModel {
                 for account_id in accounts {
                     self.send_to(account_id, MailRequest::FlushOutbox { id: None });
                 }
+            }
+            AppMsg::EditQueuedOutbox { account_id, id } => {
+                self.compose_from_outbox(account_id, id, &sender)
+            }
+            // Let go unanswered when the account has no worker, which the
+            // composer reads as "could not say".
+            AppMsg::TutaRecipients { account_id, ask } => {
+                self.send_to(account_id, MailRequest::TutaRecipients(ask))
             }
             _ => unreachable!("not routed to on_outbox"),
         }

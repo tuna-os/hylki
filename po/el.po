@@ -4016,6 +4016,135 @@ msgstr "Γράψτε πρώτα κάτι ή επιλέξτε το κείμενο
 msgid "Could not translate"
 msgstr "Δεν ήταν δυνατή η μετάφραση"
 
+msgid "Outside Tuta: gets ordinary email, not end-to-end encrypted"
+msgstr ""
+
+msgid "Outside Tuta: needs a password"
+msgstr ""
+
+msgid "Outside Tuta: the password is weak"
+msgstr ""
+
+msgid "Outside Tuta: reads it in Tuta's web app with the password"
+msgstr ""
+
+msgid "Not confidential: {count} recipient outside Tuta gets ordinary email."
+msgid_plural ""
+"Not confidential: {count} recipients outside Tuta get ordinary email."
+msgstr[0] ""
+msgstr[1] ""
+
+msgid ""
+"{count} recipient outside Tuta reads this in Tuta's web app with the "
+"password you set."
+msgid_plural ""
+"{count} recipients outside Tuta read this in Tuta's web app with the "
+"passwords you set."
+msgstr[0] ""
+msgstr[1] ""
+
+msgid ""
+"{missing} recipient outside Tuta needs a password to read this in Tuta's web "
+"app."
+msgid_plural ""
+"{missing} recipients outside Tuta need a password to read this in Tuta's web "
+"app."
+msgstr[0] ""
+msgstr[1] ""
+
+msgid ""
+"Confidential: end-to-end encrypted. Recipients outside Tuta need a password."
+msgstr ""
+
+msgid "Not confidential: recipients outside Tuta get ordinary email."
+msgstr ""
+
+#, fuzzy
+msgid "Passwords"
+msgstr "Κωδικός πρόσβασης"
+
+#, fuzzy
+msgid "The account did not answer."
+msgstr "Η υπηρεσία δεν αποδέχτηκε το κλειδί."
+
+#, fuzzy
+msgid "Cannot merge a confidential message"
+msgstr "Δεν είναι δυνατή η συγχώνευση κρυπτογραφημένου μηνύματος"
+
+msgid ""
+"Each recipient outside Tuta would need a password of their own. Turn off "
+"Confidential to merge: mail to Tuta addresses is still end-to-end encrypted."
+msgstr ""
+
+msgid "Missing"
+msgstr ""
+
+msgid "Strong"
+msgstr ""
+
+msgid "Weak"
+msgstr ""
+
+msgid "Done"
+msgstr ""
+
+msgid ""
+"Recipients outside Tuta get an email with a link to Tuta's web app, where "
+"they enter the password to read this message and answer it securely."
+msgstr ""
+
+msgid ""
+"Tell each of them the password another way, in person or on the phone, never "
+"by email. Tuta keeps it with the recipient in your Tuta contacts."
+msgstr ""
+
+#, fuzzy
+msgid "Passwords Needed"
+msgstr "Κωδικός πρόσβασης"
+
+msgid ""
+"{names} is outside Tuta and needs a password to read this confidential "
+"message. Enter one, or turn off Confidential to send ordinary email."
+msgid_plural ""
+"{names} are outside Tuta and each need a password to read this confidential "
+"message. Enter them, or turn off Confidential to send ordinary email."
+msgstr[0] ""
+msgstr[1] ""
+
+#, fuzzy
+msgid "Enter Passwords"
+msgstr "Εισαγάγετε τον κωδικό πρόσβασης."
+
+#, fuzzy
+msgid "Send With a Weak Password?"
+msgstr "Προστασία με κωδικό πρόσβασης"
+
+msgid ""
+"The password for {names} is not secure enough. Anyone who guesses it can "
+"read the message."
+msgid_plural ""
+"The passwords for {names} are not secure enough. Anyone who guesses one can "
+"read the message."
+msgstr[0] ""
+msgstr[1] ""
+
+#, fuzzy
+msgid "Change Password"
+msgstr "Κωδικός πρόσβασης"
+
+msgid "Send Without End-to-End Encryption?"
+msgstr ""
+
+msgid ""
+"This message will not be sent end-to-end encrypted. Recipients outside Tuta "
+"get it as ordinary email, which their mail provider can read. Turn on "
+"Confidential to protect it with a password instead."
+msgstr ""
+
+#, fuzzy
+msgid "Send Not Confidential"
+msgstr "Εμπιστευτικό"
+
 msgid "Save to Templates"
 msgstr "Αποθήκευση στα Πρότυπα"
 
@@ -7328,6 +7457,9 @@ msgstr ""
 "συνεχιστεί όταν επανέλθει το δίκτυο. Κάντε κλικ για νέα προσπάθεια ή πατήστε "
 "παρατεταμένα για τη γραμμή κατάστασης."
 
+msgid "This is not a Tuta account."
+msgstr ""
+
 msgid ""
 "Could not read the password for {email} from the keyring ({e}). Hylki tries "
 "again at the next connection."
@@ -7592,8 +7724,18 @@ msgid ""
 msgstr ""
 
 msgid ""
-"End-to-end encrypted delivery reaches Tuta addresses only, and a recipient "
-"is outside Tuta."
+"A recipient outside Tuta has no password, so the confidential message was "
+"not sent. Enter a password for each recipient outside Tuta, or turn off "
+"Confidential."
+msgstr ""
+
+msgid ""
+"Confidential mail to recipients outside Tuta can only be sent from your own "
+"Tuta mailbox, not a shared one. Turn off Confidential, or send from your own "
+"address."
+msgstr ""
+
+msgid "The passwords could not be saved to your Tuta contacts."
 msgstr ""
 
 msgid ""
@@ -7796,6 +7938,11 @@ msgstr ""
 "συνημμένου ήταν:"
 
 msgid ""
+"The passwords could not be saved to your Tuta contacts. If they are still "
+"missing when the message is due, it comes back to you to enter them again."
+msgstr ""
+
+msgid ""
 "OpenPGP signing and encryption aren't available for Tuta accounts. Turn them "
 "off to send."
 msgstr ""
@@ -7808,6 +7955,10 @@ msgstr ""
 #, fuzzy
 msgid "“{subject}”: {e}"
 msgstr "Το «{subject}» θα σταλεί {when}"
+
+#, fuzzy
+msgid "Could not send “{subject}”: {e}"
+msgstr "Εξακολουθεί να μην είναι δυνατή η αποστολή του «{subject}»: {e}"
 
 msgid ""
 "Tuta's servers cannot search encrypted mail: search finds what is on this "
@@ -8218,6 +8369,18 @@ msgstr "Απόκρυψη του θέματος κρυπτογραφημένων 
 
 msgid "Only the recipients see the subject. Others see \"...\"."
 msgstr "Το θέμα εμφανίζεται μόνο στους παραλήπτες. Οι υπόλοιποι βλέπουν «…»."
+
+msgid "Tuta"
+msgstr ""
+
+#, fuzzy
+msgid "Send confidential by default"
+msgstr "Ανάπτυξη συζητήσεων από προεπιλογή"
+
+msgid ""
+"New messages start end-to-end encrypted. Recipients outside Tuta then need a "
+"password."
+msgstr ""
 
 msgid "Your password is kept in the system keyring, never in plain text."
 msgstr ""

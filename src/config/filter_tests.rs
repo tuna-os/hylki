@@ -649,6 +649,7 @@ fn settings_bundle_roundtrip_parses() {
         folder_sort: None,
         sign_by_default: false,
         plain_subject: false,
+        unconfidential_by_default: false,
         graph_directory: false,
         graph_directory_only: false,
         graph_label_names: false,

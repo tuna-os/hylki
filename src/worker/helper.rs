@@ -146,9 +146,15 @@ impl HelperError {
             "recipient_not_found" => i18n(
                 "A recipient's Tuta address was not found, so the message could not be encrypted for it. Check the address.",
             ),
-            "secure_external_unsupported" => i18n(
-                "End-to-end encrypted delivery reaches Tuta addresses only, and a recipient is outside Tuta.",
+            "password_required" => i18n(
+                "A recipient outside Tuta has no password, so the confidential message was not sent. Enter a password for each recipient outside Tuta, or turn off Confidential.",
             ),
+            "secure_external_sender_unsupported" => i18n(
+                "Confidential mail to recipients outside Tuta can only be sent from your own Tuta mailbox, not a shared one. Turn off Confidential, or send from your own address.",
+            ),
+            "contact_save_failed" => {
+                i18n("The passwords could not be saved to your Tuta contacts.")
+            }
             "ordinary_delivery_requires_consent" => i18n(
                 "Mail to an address outside Tuta is not end-to-end encrypted, and sending it that way was not confirmed.",
             ),
@@ -539,11 +545,7 @@ impl HelperClient {
 
     /// Start a streaming `operation` on the stored session, with the
     /// helper at `executable`.
-    pub(super) fn watch(
-        &self,
-        executable: &Path,
-        operation: &str,
-    ) -> Result<Watch, HelperError> {
+    pub(super) fn watch(&self, executable: &Path, operation: &str) -> Result<Watch, HelperError> {
         let session: Value =
             serde_json::from_str(&self.session).map_err(|_| HelperError::new("session_invalid"))?;
         let mut parameters = Object::new();

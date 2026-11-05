@@ -50,6 +50,10 @@ pub(crate) struct EditableMessage {
     pub(crate) receipt: bool,
     /// How important it is marked (#563).
     pub(crate) importance: crate::models::Importance,
+    /// A Tuta message's confidential mark, as the account's MIME carries it
+    /// (see [`crate::models::TUTA_CONFIDENTIAL_HEADER`]); `None` for any
+    /// other message.
+    pub(crate) confidential: Option<bool>,
 }
 
 /// Whoever the envelope names that none of the `headers` (address lists)
@@ -246,6 +250,10 @@ pub(crate) fn editable_from_raw(raw: &[u8], envelope_rcpts: &[String]) -> Editab
         importance: crate::models::Importance::from_headers(|name| {
             parsed.as_ref().and_then(|p| p.header_raw(name))
         }),
+        confidential: parsed
+            .as_ref()
+            .and_then(|p| p.header_raw(crate::models::TUTA_CONFIDENTIAL_HEADER))
+            .map(|v| v.trim().eq_ignore_ascii_case("yes")),
     }
 }
 

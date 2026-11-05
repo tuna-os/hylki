@@ -490,7 +490,7 @@ fn drop_stale_tables(conn: &Connection, version: i64) {
 /// each is added in place rather than dropping the message index, which
 /// would cost every user a full re-sync; the error when a column is already
 /// there is the expected outcome, not a problem.
-const ADDED_COLUMNS: [&str; 18] = [
+const ADDED_COLUMNS: [&str; 19] = [
     // The list preview.
     "ALTER TABLE messages ADD COLUMN preview TEXT NOT NULL DEFAULT ''",
     // Send Later (#145): when a queued message is due; NULL sends at once.
@@ -538,6 +538,9 @@ const ADDED_COLUMNS: [&str; 18] = [
     // And whether a folder can hold others (#554): a cached listing reads
     // as yes until the server lists it again.
     "ALTER TABLE folders ADD COLUMN childless INTEGER NOT NULL DEFAULT 0",
+    // And how a queued Tuta message goes (confidential or ordinary):
+    // empty for a row queued before, which goes as it would have then.
+    "ALTER TABLE outbox ADD COLUMN delivery TEXT NOT NULL DEFAULT ''",
 ];
 
 /// The cleanups run at every open, whatever the version.

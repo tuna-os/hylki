@@ -2,21 +2,29 @@
 
 ## Unreleased
 
+- **Added: confidential Tuta mail to anyone.** A Tuta account's composer
+  has a **Confidential** toggle, on by default as in Tuta (Settings →
+  Accounts → **Send confidential by default**). Confidential mail to an
+  address outside Tuta is end-to-end encrypted behind a password, read in
+  Tuta's web app: each recipient's pill shows its password state, and
+  **Passwords** lists them with Tuta's strength check. Passwords are kept
+  in your Tuta contacts, never in the Outbox or a draft. With Confidential
+  off, sending outside Tuta asks first. See
+  [Confidential mail and passwords](docs/DOCUMENTATION.md#confidential-mail-and-passwords).
+
 - **Added: Tuta accounts.** Tuta has no IMAP, so a Tuta account goes through
   `hylki-tuta`, a helper built on Tuta's own SDK. Choose **Tuta** in the
   Provider list and sign in with the address and password; an account with
   an authenticator app is asked for its code next. Hylki keeps the session in
   the keyring, never the password. Folders, reading, read state, moving and
   sending work, and mail between Tuta accounts is end-to-end encrypted as in
-  Tuta's own app; a message with recipients elsewhere goes out as ordinary
-  mail. Folders are made, renamed, moved and deleted on the server, drafts
+  Tuta's own app. Folders are made, renamed, moved and deleted on the server, drafts
   and templates are Tuta drafts, tags are Tuta labels, mail is deleted for
   good from the Trash and Spam, snoozing and undoing a move work, new mail
   is pushed, mail moved or copied in from another account is imported as
   Tuta's own app imports a mail file, and a reply or forward joins the
-  conversation it answers in Tuta's own app. Password-protected mail to other
-  providers is not offered, stars stay on this computer, and security keys
-  are not supported. See [Tuta](docs/DOCUMENTATION.md#tuta).
+  conversation it answers in Tuta's own app. Stars stay on this computer, and
+  security keys are not supported. See [Tuta](docs/DOCUMENTATION.md#tuta).
 
 - **Fixed: a long conversation could use all the memory** (#581, by Gonzalo
   Vasco López). A folded message card still loaded its message in the

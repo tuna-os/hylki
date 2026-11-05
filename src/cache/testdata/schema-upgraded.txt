@@ -197,7 +197,7 @@ CREATE TABLE outbox (
     queued_at   INTEGER NOT NULL,
     attempts    INTEGER NOT NULL DEFAULT 0,
     last_error  TEXT    NOT NULL DEFAULT ''
-, send_at INTEGER, forwards TEXT NOT NULL DEFAULT '')
+, send_at INTEGER, forwards TEXT NOT NULL DEFAULT '', delivery TEXT NOT NULL DEFAULT '')
 
 table refs_repair
 CREATE TABLE refs_repair (

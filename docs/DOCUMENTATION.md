@@ -168,11 +168,39 @@ wherever it goes, so it is found again whether or not it was opened.
 
 Mail between Tuta accounts is end-to-end encrypted, as in Tuta's own app:
 a message whose recipients are all on Tuta is encrypted for each of them
-with their current Tuta key, without asking. A message with any recipient
-elsewhere goes out as ordinary mail to everyone, Tuta recipients included,
-as Tuta's own app sends it when it is not asked to protect it with a
-password. A Tuta address that does not exist stops the whole message
-rather than leaving anyone out.
+with their current Tuta key, without asking. A Tuta address that does not
+exist stops the whole message rather than leaving anyone out.
+
+#### Confidential mail and passwords
+
+Writing from a Tuta account, the composer's header has a **Confidential**
+toggle, a lock that is closed while it is on. It starts on, unless **Send
+confidential by default** is off in the account's settings (Settings →
+Accounts, in the **Tuta** group). Hylki asks Tuta which recipients are
+outside Tuta as you type them.
+
+- **Confidential on:** the whole message is end-to-end encrypted. A
+  recipient outside Tuta gets an email with a link to Tuta's web app, where
+  they enter a password to read the message and answer it. Each of their
+  address pills shows whether it has a password, a weak one or none, and
+  the bar above the message opens **Passwords**, which lists them with a
+  strength bar scored as Tuta scores it. A password your Tuta contacts
+  already keep is filled in. Tell each recipient their password another
+  way, in person or on the phone, never by email. Sending with a missing
+  password stops with a message; a weak one (below Tuta's mark of 64)
+  asks first. Once sent, each password is kept with the recipient in your
+  Tuta contacts, where Tuta's own apps find it too.
+- **Confidential off:** recipients outside Tuta get ordinary email, which
+  their provider can read, and so does everyone else on the message. Send
+  asks once per message before it goes that way.
+
+A message sent later, or one waiting in the Outbox, keeps whether it is
+confidential but never its passwords: they are saved to your Tuta contacts
+when it is scheduled and read from there again when it goes. If one is
+missing by then, the message stays in the Outbox and opens in the composer
+to enter it. A draft keeps whether it is confidential, and no password.
+Confidential mail outside Tuta cannot be sent from a shared mailbox, and a
+confidential message cannot be mail merged.
 
 New mail is pushed: while Hylki runs, the helper keeps Tuta's own event
 channel open and every change it reports syncs the folder it names. While
@@ -186,9 +214,10 @@ The limits, all of them Tuta's or the helper's:
 
 - **No stars on the server.** Tuta keeps none, so a star stays on this
   computer.
-- **No password-protected mail to other providers.** Tuta can encrypt for
-  someone outside Tuta with a password you share with them; the helper
-  cannot, so such mail goes as ordinary mail.
+- **A password recipient stays on Tuta's servers.** The first confidential
+  message to an address outside Tuta creates a Tuta external user for it,
+  which cannot be removed, and the email Tuta sends them with the link is
+  always in English.
 - **Keys are not verified by hand.** Each recipient's key is taken from
   Tuta as it is, as Tuta's own app does for every contact you have not
   verified there.

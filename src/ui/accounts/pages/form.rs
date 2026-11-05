@@ -99,6 +99,8 @@ pub(in crate::ui::accounts) struct EditorForm {
     pub(in crate::ui::accounts) pgp_key_row: adw::ComboRow,
     pub(in crate::ui::accounts) sign_default_row: adw::SwitchRow,
     pub(in crate::ui::accounts) hide_subject_row: adw::SwitchRow,
+    pub(in crate::ui::accounts) tuta_group: adw::PreferencesGroup,
+    pub(in crate::ui::accounts) confidential_default_row: adw::SwitchRow,
     pub(in crate::ui::accounts) keyring_note: gtk::Label,
 }
 
@@ -883,6 +885,21 @@ impl EditorForm {
                     },
                 },
 
+                // Tuta's confidential mail: end-to-end encrypted, with a
+                // password for each recipient outside Tuta. Shown for a
+                // Tuta account only (see `apply_protocol`).
+                #[name = "tuta_group"]
+                add = &adw::PreferencesGroup {
+                    set_title: &i18n("Tuta"),
+                    set_visible: false,
+                    #[name = "confidential_default_row"]
+                    adw::SwitchRow {
+                        set_title: &i18n("Send confidential by default"),
+                        set_subtitle: &i18n("New messages start end-to-end encrypted. Recipients outside Tuta then need a password."),
+                        set_active: true,
+                    },
+                },
+
                 // For a GOA-imported account this removes it from
                 // Hylki only — it stays in GNOME Online Accounts and
                 // returns to the import list.
@@ -988,6 +1005,8 @@ impl EditorForm {
             pgp_key_row,
             sign_default_row,
             hide_subject_row,
+            tuta_group,
+            confidential_default_row,
             keyring_note,
         }
     }

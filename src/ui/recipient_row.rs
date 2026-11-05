@@ -238,6 +238,37 @@ impl RecipientRow {
         imp.suffixes.set_visible(true);
     }
 
+    /// The address of each pill, in order: what the field holds, without
+    /// what is still being typed.
+    pub(crate) fn pill_addresses(&self) -> Vec<String> {
+        self.imp()
+            .pills
+            .borrow()
+            .iter()
+            .filter_map(|(_, r)| crate::worker::parse_recipients(r).into_iter().next())
+            .map(|(_, addr)| addr)
+            .filter(|addr| !addr.is_empty())
+            .collect()
+    }
+
+    /// Mark each pill as `mark` says by its address: an icon at its start,
+    /// with words for the pointer and a screen reader and a style class, or
+    /// nothing. A pill made later comes unmarked, so this is called again
+    /// after every change.
+    pub(crate) fn mark_pills(&self, mark: impl Fn(&str) -> Option<PillMark>) {
+        for (pill, recipient) in self.imp().pills.borrow().iter() {
+            let Some(pill) = pill.downcast_ref::<gtk::Box>() else {
+                continue;
+            };
+            let addr = crate::worker::parse_recipients(recipient)
+                .into_iter()
+                .next()
+                .map(|(_, a)| a)
+                .unwrap_or_default();
+            set_pill_mark(pill, mark(&addr));
+        }
+    }
+
     pub(super) fn set_input_purpose(&self, purpose: gtk::InputPurpose) {
         self.imp().text.set_input_purpose(purpose);
     }
@@ -326,4 +357,47 @@ impl RecipientRow {
             self.remove_css_class("focused");
         }
     }
+}
+
+/// What [`RecipientRow::mark_pills`] puts on a pill.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub(crate) struct PillMark {
+    pub(crate) icon: &'static str,
+    /// Said by the tooltip and to a screen reader.
+    pub(crate) words: String,
+    /// Added to the pill: `pill-mark-…`, which the stylesheet colors.
+    pub(crate) class: &'static str,
+}
+
+/// The name a pill's mark icon goes by, so the next mark replaces it.
+const MARK_NAME: &str = "pill-mark";
+
+fn set_pill_mark(pill: &gtk::Box, mark: Option<PillMark>) {
+    let old = pill.first_child().filter(|c| c.widget_name() == MARK_NAME);
+    for class in pill.css_classes() {
+        if class.starts_with("pill-mark-") {
+            pill.remove_css_class(&class);
+        }
+    }
+    let Some(mark) = mark else {
+        if let Some(old) = old {
+            pill.remove(&old);
+        }
+        pill.reset_property(gtk::AccessibleProperty::Description);
+        return;
+    };
+    let icon = old.and_downcast::<gtk::Image>().unwrap_or_else(|| {
+        let icon = gtk::Image::new();
+        icon.set_widget_name(MARK_NAME);
+        icon.set_pixel_size(12);
+        icon.set_margin_end(4);
+        pill.prepend(&icon);
+        icon
+    });
+    icon.set_icon_name(Some(mark.icon));
+    icon.set_tooltip_text(Some(&mark.words));
+    // The pill takes the focus, not its icon: a screen reader hears the
+    // mark with the address.
+    pill.update_property(&[gtk::accessible::Property::Description(&mark.words)]);
+    pill.add_css_class(mark.class);
 }

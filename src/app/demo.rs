@@ -68,6 +68,7 @@ pub(super) fn demo_account_configs() -> Vec<AccountConfig> {
         folder_sort: None,
         sign_by_default: false,
         plain_subject: false,
+        unconfidential_by_default: false,
         graph_directory: false,
         graph_directory_only: false,
         graph_label_names: false,
@@ -87,8 +88,11 @@ pub(super) fn demo_account_configs() -> Vec<AccountConfig> {
 /// The demo's stand-in accounts as last edited in the Accounts panel, or
 /// the stock ones. The stand-in secret is not serialised, so it is put
 /// back on load (the editor will not save an account without one).
+///
+/// HYLKI_SHOWCASE_TUTA makes the first one a Tuta account, so its composer
+/// offers Confidential and the demo answers who is outside Tuta.
 pub(super) fn demo_account_configs_saved() -> Vec<AccountConfig> {
-    match config::load_demo_accounts() {
+    let mut accounts = match config::load_demo_accounts() {
         Some(mut saved) => {
             for a in saved.iter_mut() {
                 if a.password.is_empty() {
@@ -98,7 +102,13 @@ pub(super) fn demo_account_configs_saved() -> Vec<AccountConfig> {
             saved
         }
         None => demo_account_configs(),
+    };
+    if std::env::var_os("HYLKI_SHOWCASE_TUTA").is_some() {
+        if let Some(first) = accounts.first_mut() {
+            first.protocol = config::Protocol::Tuta;
+        }
     }
+    accounts
 }
 
 /// The demo's tags (#71): the keywords its sample messages carry, so the

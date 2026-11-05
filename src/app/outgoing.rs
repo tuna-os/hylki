@@ -95,6 +95,10 @@ impl Outgoing {
             last_error: String::new(),
             send_at: None,
             forwards: m.forwards.clone(),
+            delivery: crate::models::TutaDelivery {
+                passwords: Default::default(),
+                ..m.tuta.clone()
+            },
             status: if self.held {
                 i18n("Waiting to send")
             } else {

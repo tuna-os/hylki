@@ -276,6 +276,10 @@ pub(crate) enum MailRequest {
     /// not have yet, says when a server could not answer, and runs beside
     /// the user's own search without taking its place.
     AskServer(ServerSearch),
+    /// The composer asks a Tuta account which recipients are outside Tuta,
+    /// and the passwords its contacts keep for them. Every other kind of
+    /// account refuses it.
+    TutaRecipients(TutaRecipientsAsk),
 }
 
 /// What an assistant asks a server, and where the answer goes. It answers
@@ -313,6 +317,28 @@ impl ServerSearch {
             done: true,
             ..Default::default()
         });
+    }
+}
+
+/// What [`MailRequest::TutaRecipients`] asks, and where the answer goes:
+/// each address described, in the order asked, or why the account could
+/// not say. The answer is let go unsent when the account has no worker.
+#[derive(Debug)]
+pub(crate) struct TutaRecipientsAsk {
+    pub(crate) addresses: Vec<String>,
+    pub(crate) answer:
+        tokio::sync::oneshot::Sender<Result<Vec<crate::models::TutaRecipient>, String>>,
+}
+
+impl TutaRecipientsAsk {
+    /// Say that this account cannot answer, and why.
+    pub(crate) fn refuse(self, why: impl Into<String>) {
+        let _ = self.answer.send(Err(why.into()));
+    }
+
+    /// The answer of every account that is not a Tuta account.
+    pub(crate) fn not_tuta(self) {
+        self.refuse(crate::i18n::i18n("This is not a Tuta account."));
     }
 }
 
@@ -398,6 +424,10 @@ pub(crate) struct OutgoingMessage {
     /// the Outbox with the reason, rather than opening it in a composer,
     /// which for a merge could be a window for each of hundreds.
     pub(crate) merged: bool,
+    /// How a Tuta account sends it (confidential, or ordinary with the
+    /// user's consent), with the passwords of its outside recipients;
+    /// ignored by every other kind of account.
+    pub(crate) tuta: crate::models::TutaDelivery,
 }
 
 /// The calendar half of an outgoing message (#223).
@@ -692,6 +722,12 @@ pub(crate) enum WorkerEvent {
     /// back so the app can open it in a composer again (#340): its composer
     /// closed when Send or Save was pressed, so this is the only copy left.
     Unsent(Box<OutgoingMessage>),
+    /// The Outbox message `id` cannot go as it is, and stays queued: open
+    /// it in the composer to be fixed. A confidential Tuta message whose
+    /// outside recipient has no password in the contacts any more.
+    EditQueued {
+        id: u32,
+    },
     /// Something worth telling the user that isn't a failure — a queued message
     /// going out on its own, say.
     Notice(String),

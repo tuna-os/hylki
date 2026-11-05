@@ -184,4 +184,9 @@ pub(crate) struct Compose {
     pub(super) edit_loss: Option<gtk::Label>,
     pub(super) edit_bar: gtk::Box,
     pub(super) last_edit: Option<crate::mcp::EditOutcome>,
+    /// Tuta's confidential mail (a Tuta From only): the toggle, who is
+    /// outside Tuta, and their passwords.
+    pub(super) tuta: super::tuta::TutaCompose,
+    /// The bar that says what happens to the recipients outside Tuta.
+    pub(super) tuta_bar: super::tuta::TutaBar,
 }

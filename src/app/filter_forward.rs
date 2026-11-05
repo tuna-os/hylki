@@ -82,6 +82,9 @@ pub(super) fn forward_outgoing(
         importance: Default::default(),
         receipt_report: None,
         merged: false,
+        // The filter's address was the user's choice when it was set up:
+        // it goes as Tuta's own app sends unasked.
+        tuta: Default::default(),
     }
 }
 

@@ -35,6 +35,9 @@ impl Compose {
             );
             return;
         }
+        if self.tuta_merge_pending(widgets, sender) {
+            return;
+        }
         if !self.attachments_present(widgets, sender) {
             return;
         }

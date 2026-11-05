@@ -384,6 +384,13 @@ pub(crate) struct AccountConfig {
     /// negative way round so every account built in code hides it.
     #[serde(default, skip_serializing_if = "is_false")]
     pub(crate) plain_subject: bool,
+    /// A Tuta account's new messages start not confidential: mail to an
+    /// address outside Tuta then goes as ordinary mail once the user agrees,
+    /// rather than end-to-end encrypted behind a password. Off by default,
+    /// as in Tuta (its `defaultUnconfidential`), and kept the negative way
+    /// round for the same reason as `plain_subject`.
+    #[serde(default, skip_serializing_if = "is_false")]
+    pub(crate) unconfidential_by_default: bool,
     /// The composer's recipient suggestions also search the organization's
     /// directory through Microsoft Graph (#410). Only for a Microsoft 365
     /// account signed in within Hylki: the scopes it needs are asked for
@@ -637,6 +644,7 @@ pub(crate) fn blank_account() -> AccountConfig {
         folder_sort: None,
         sign_by_default: false,
         plain_subject: false,
+        unconfidential_by_default: false,
         graph_directory: false,
         graph_directory_only: false,
         graph_label_names: false,

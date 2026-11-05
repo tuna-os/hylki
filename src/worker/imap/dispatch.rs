@@ -361,6 +361,10 @@ impl<E: Emit> ImapWorker<E> {
                 self.on_ask_server(ask);
                 After::Done
             }
+            MailRequest::TutaRecipients(ask) => {
+                ask.not_tuta();
+                After::Done
+            }
             MailRequest::UndoMove {
                 path,
                 dest,

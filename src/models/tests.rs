@@ -284,6 +284,7 @@ fn item() -> OutboxItem {
         send_at: None,
         last_error: String::new(),
         forwards: String::new(),
+        delivery: Default::default(),
         status: String::new(),
     }
 }

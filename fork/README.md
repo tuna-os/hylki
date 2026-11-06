@@ -53,20 +53,32 @@ nothing else; `fork-release.yml` and `import-from-hylki.sh` read them through
 - **Display name** "Lifafa": launcher, metainfo, the window and About titles,
   the wordmark the About window and the welcome wizard show (the name in
   Cantarell beside the icon, generated in place of upstream's "Hylki"
-  artwork), the Files extension's menu item, and the tray. The po catalogues
-  translate "Hylki", so these strings show untranslated, which is right for a
-  name. Upstream's other strings that mention Hylki in a sentence, such as
-  "Welcome to Hylki", are left as they are with their translations.
+  artwork), the Files extension's menu item, and the tray. Beyond those,
+  every string literal in `src/` that calls the app Hylki ("Welcome to
+  Hylki", "Quit Hylki entirely", the MCP tools' descriptions, the sign-in
+  page) names it Lifafa instead. A Rust string scanner in the script finds
+  them, so identifiers (`HylkiTray`), the resource prefix, `HYLKI_*`
+  variables and comments are never touched. The po catalogues translate the
+  old wording, so those strings show in English.
+- **Credits**: the About window's footer reads "Built on Hylki by hyprlab",
+  the coffee row says it goes to Hylki's author, and the contributor lists
+  are upstream's. Hylki's Discord and email rows are dropped; questions go to
+  the suite's bug tracker. The metainfo credits Hylki in its second paragraph.
 - **Icon**: `fork/icons/org.tunaos.lifafa.svg`, an envelope on the suite's
   blue pad, replaces Hylki's icon in the launcher's hicolor icons, the in-app
-  icon resource and the PNG the app embeds for Settings → App icon. The tray's
-  symbolic icon and the alternative icons in Settings stay upstream's.
+  icon resource and the PNG the app embeds for Settings → App icon.
+  `org.tunaos.lifafa-symbolic.svg` replaces the symbolic icon the tray draws,
+  and `fork/icons/alt/` the alternatives Settings → App icon offers, under
+  upstream's file names and labels (the envelope on a blue, navy and yellow
+  square, and without its pad as "Classic"). The `.svg` beside each `.png` is
+  its source.
 - **Directories** under the XDG config, data, cache and runtime bases are
   `lifafa` instead of `hylki`, so a native build does not share state with
   upstream either. The Files extension gets its own file name.
 - **Metainfo** follows the suite's: its summary, `developer_name`, a first
   paragraph naming the Hanthor Office Suite and one crediting Hylki, then
-  Hylki's own description and releases, which describe the code being built.
+  upstream's description under the app's name. The releases stay as upstream
+  wrote them: they are the history of the code being built, renames included.
 - **Links**: the About window, the welcome page and the metainfo homepage and
   bug tracker point at the suite; the source link points here.
 - **Manifest**: `fork/org.tunaos.lifafa.yml` is written from upstream's
@@ -77,12 +89,14 @@ nothing else; `fork-release.yml` and `import-from-hylki.sh` read them through
 
 Left alone on purpose: the bundled resource prefix `/co/hyprlab/Hylki`, which
 is private to the process (`main.rs` pins it), the `hylki` binary and gettext
-domain, which live inside the Flatpak, and the Vireo and Veem carry-over,
-which is upstream's.
+domain, which live inside the Flatpak, the Vireo and Veem carry-over
+(`legacy.rs`, `carry_over.rs`), which is upstream's, and the release notes and
+changelog the About window shows, which are Hylki's history.
 
 Every rewrite names the text it expects and stops with the file and pattern
-when upstream changes it. A final sweep fails on any `co.hyprlab.Hylki` or
-`.join("hylki…")` left in `src/`, `data/` or `resources/`. So drift in either
+when upstream changes it. A final sweep fails on any `co.hyprlab.Hylki`,
+`.join("hylki…")` or string naming Hylki left in `src/`, `data/` or
+`resources/`, outside the credits and the kept files. So drift in either
 direction fails the daily sync instead of shipping. The script refuses to run
 on its own checkout unless `HYLKI_REBRAND_IN_PLACE=1` is set (CI sets it on
 its throwaway checkout). Running it again on a rebranded tree only repeats the

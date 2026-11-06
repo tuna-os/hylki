@@ -148,6 +148,72 @@ def text_files(*roots):
                 continue
 
 
+# "Hylki" as a word in text a person reads, not part of an identifier
+# ("HylkiTray", "X-Hylki-Icon-Launcher") or of the app ID.
+USER_HYLKI = re.compile(r"(?<![\w.\-])Hylki(?![\w\-])")
+# Strings that name Hylki on purpose: the credits this script writes into the
+# About window, which are matched as whole literals.
+CREDIT_FOOTER = "Built on Hylki by hyprlab. © 2026 Hyprlab"
+CREDIT_COFFEE = "Buy Hylki's author a coffee"
+# Upstream's own history, left as it is: the carry-over from Vireo and Veem
+# (and its "Welcome to Hylki, formerly …" notice).
+KEEP_FILES = {"src/desktop/legacy.rs", "src/ui/carry_over.rs"}
+# Names nobody reads: the private icon theme.
+KEEP_LITERALS = {("src/desktop/icon_theme.rs", "Hylki"), *((None, c) for c in (CREDIT_FOOTER, CREDIT_COFFEE))}
+
+
+def rust_literals(src):
+    """The (start, end) of every string literal's contents in Rust source,
+    skipping comments and char literals."""
+    i, n = 0, len(src)
+    while i < n:
+        if src.startswith("//", i):
+            j = src.find("\n", i)
+            i = n if j < 0 else j
+        elif src.startswith("/*", i):
+            depth = 0
+            while i < n:
+                if src.startswith("/*", i):
+                    depth, i = depth + 1, i + 2
+                elif src.startswith("*/", i):
+                    depth, i = depth - 1, i + 2
+                    if depth == 0:
+                        break
+                else:
+                    i += 1
+        elif (raw := re.match(r'b?r(#*)"', src[i:i + 300])) and (i == 0 or not (src[i - 1].isalnum() or src[i - 1] == "_")):
+            start = i + raw.end()
+            end = src.find('"' + raw.group(1), start)
+            yield start, end
+            i = end + 1 + len(raw.group(1))
+        elif src[i] == '"':
+            j = i + 1
+            while j < n and src[j] != '"':
+                j += 2 if src[j] == "\\" else 1
+            yield i + 1, j
+            i = j + 1
+        elif src[i] == "'":
+            char = re.match(r"'(?:\\u\{[0-9a-fA-F]+\}|\\.|[^\\'])'", src[i:i + 16])
+            i += char.end() if char else 1
+        elif src[i].isalnum() or src[i] == "_":
+            i += re.match(r"\w+", src[i:i + 300]).end()
+        else:
+            i += 1
+
+
+def user_hylki(path, text):
+    """Where a Rust file's string literals call the app Hylki."""
+    if str(path) in KEEP_FILES:
+        return
+    for start, end in rust_literals(text):
+        literal_text = text[start:end]
+        if "/co/hyprlab/Hylki" in literal_text or (None, literal_text) in KEEP_LITERALS \
+                or (str(path), literal_text) in KEEP_LITERALS:
+            continue
+        for m in USER_HYLKI.finditer(literal_text):
+            yield start + m.start(), start + m.end()
+
+
 # Where a leftover would change what runs or what gets installed.
 SWEPT = ("src", "data", "resources")
 
@@ -165,6 +231,10 @@ def sweep_check():
     for root in SWEPT:
         for path in Path(root).rglob("*" + OLD_ID + "*"):
             leftovers.append(f"{path}: file name")
+    for path, text in text_files("src"):
+        if path.suffix == ".rs":
+            for start, _ in user_hylki(path, text):
+                leftovers.append(f"{path}:{text.count(chr(10), 0, start) + 1}: Hylki in a string")
     if leftovers:
         fail("upstream names left after the rebrand:\n  " + "\n  ".join(leftovers))
 
@@ -175,7 +245,10 @@ if STAMP.exists():
     sys.exit(0)
 
 icon_png = {size: ICON.with_name(f"{ICON.stem}-{size}.png") for size in (256, 512)}
-for path in (ICON, *icon_png.values()):
+icon_symbolic = ICON.with_name(f"{ICON.stem}-symbolic.svg")
+# Settings → App icon offers these beside the default, by upstream's file names.
+icon_alt = ICON.parent / "alt"
+for path in (ICON, icon_symbolic, *icon_png.values()):
     if not path.is_file():
         sys.exit(f"rebrand: the icon {path} is missing")
 
@@ -244,13 +317,21 @@ for path, text in text_files(*SWEPT):
 
 # --- The app icon -----------------------------------------------------------
 # Everywhere the app's own icon is installed or embedded: the launcher's
-# hicolor icons, the in-app icon resource, and the PNG the app embeds for
-# Settings → App icon and the sign-in page. The symbolic icon and the
-# alternative icons in Settings stay upstream's.
+# hicolor icons, the in-app icon resource, the PNG the app embeds for
+# Settings → App icon and the sign-in page, the symbolic icon the tray draws,
+# and the alternatives Settings → App icon offers.
 install(ICON, f"data/icons/hicolor/scalable/apps/{APP_ID}.svg")
 install(ICON, f"resources/icons/scalable/apps/{APP_ID}.svg")
 for size, png in icon_png.items():
     install(png, f"data/icons/hicolor/{size}x{size}/apps/{APP_ID}.png")
+install(icon_symbolic, f"data/icons/hicolor/symbolic/apps/{APP_ID}-symbolic.svg")
+upstream_alt = sorted(p.name for p in Path("data/icons/alt").glob("*.png"))
+if not upstream_alt:
+    fail("data/icons/alt has no alternative icons")
+for name in upstream_alt:
+    if not (icon_alt / name).is_file():
+        sys.exit(f"rebrand: upstream offers data/icons/alt/{name}; draw {icon_alt / name} to match")
+    install(icon_alt / name, f"data/icons/alt/{name}")
 
 # --- The display name -------------------------------------------------------
 sub(
@@ -284,11 +365,14 @@ sub(desktop, r"^Comment=.*$", literal(f"Comment={desktop_comment}"), count=1)
 sub(desktop, r"^# Earlier names.*\nX-Flatpak-RenamedFrom=.*\n", "", count=1)
 
 # --- Metainfo, in the office suite's style ----------------------------------
-# Upstream's releases stay as they are: the version and its notes describe
-# the code being built.
+# The app's description names it by its own name; the releases stay as
+# upstream wrote them, since they are the history of the code being built
+# (and some of them are about Hylki's own renames).
 sub(metainfo, r"^  <!-- Hylki was called .*-->\n  <replaces>\n(?:    <id>.*</id>\n)+  </replaces>\n", "", count=1)
 sub(metainfo, r"^  <name>Hylki</name>$", literal(f"  <name>{x(APP_NAME)}</name>"), count=1)
 sub(metainfo, r"^  <summary>.*</summary>$", literal(f"  <summary>{x(os.environ['SUMMARY'])}</summary>"), count=1)
+sub(metainfo, r"^  <description>\n(?:.*\n)*?  </description>\n",
+    lambda m: USER_HYLKI.sub(lambda _: x(APP_NAME), m.group(0)), count=1)
 sub(
     metainfo,
     r"^(  <description>\n)",
@@ -297,11 +381,9 @@ sub(
     f"{x(os.environ['SUITE_NAME'])}.</p>\n"
     # No scheme on the link: AppStream warns about plain-text URLs here.
     "    <p>It is built on Hylki by hyprlab (github.com/hyprlab/hylki), with "
-    "native Tuta and Proton Mail accounts added. What follows is Hylki's own "
-    "description.</p>\n",
+    "native Tuta and Proton Mail accounts added.</p>\n",
     count=1,
 )
-sub(metainfo, r"\bSend with Hylki entry\b", literal(f"Send with {x(APP_NAME)} entry"), count=1)
 sub(metainfo, r'<url type="homepage">https://hylki\.hyprlab\.co</url>',
     literal(f'<url type="homepage">{x(os.environ["HOMEPAGE"])}</url>'), count=1)
 sub(metainfo, r'<url type="bugtracker">https://github\.com/hyprlab/hylki/issues</url>',
@@ -341,6 +423,55 @@ sub(about, r'"https://github\.com/hyprlab/hylki/issues"', literal(f'"{os.environ
 sub(about, r'"https://github\.com/hyprlab/hylki",', literal(f'"{SOURCE_URL}",'), count=1)
 sub("src/ui/welcome/pages.rs", r'"url", "https://github\.com/hyprlab/hylki"',
     literal(f'"url", "{os.environ["BUGTRACKER"]}"'), count=1)
+# Upstream's community channels are hyprlab's, not this app's: questions go
+# to the bug tracker above.
+sub(about, r'^    links\.append\(&mk_row\("Discord", "https://discord\.gg/[^"]*"\)\);\n', "", count=1)
+sub(about, r'^    links\.append\(&mk_row\("hyprlab@proton\.me", "mailto:hyprlab@proton\.me"\)\);\n', "", count=1)
+
+# --- Every string that calls the app Hylki ----------------------------------
+# Window and dialog text, notifications, the tray, the MCP tools' text, the
+# sign-in page, and the fixtures the tests compare them with: every string
+# literal in src/ that names Hylki names the app instead. Identifiers, the
+# resource prefix and environment variables never match (see USER_HYLKI),
+# and the files in KEEP_FILES are upstream's own history. Their translations
+# no longer match and fall back to English.
+expected_strings = {
+    "src/ui/welcome.rs": "Welcome to Hylki",
+    "src/app/palette.rs": "Quit Hylki entirely",
+    "src/app/tray/indicator.rs": "Open Hylki",
+    "src/app/hand_off.rs": "Send {n} files with Hylki",
+    "src/ui/preferences/pages/privacy.rs": "Hylki collects no telemetry",
+    "src/contacts/contact_sources.rs": "Hylki Address Book",
+    "src/services/oauth/flow.rs": "<title>Hylki",
+}
+for name, needle in expected_strings.items():
+    if needle not in Path(name).read_text():
+        fail(f"{name}: expected the string {needle!r}")
+renamed = 0
+for path, text in text_files("src"):
+    if path.suffix != ".rs":
+        continue
+    spans = list(user_hylki(path, text))
+    for start, end in reversed(spans):
+        text = text[:start] + APP_NAME + text[end:]
+    if spans:
+        path.write_text(text)
+        renamed += len(spans)
+if renamed < 150:
+    fail(f"expected upward of 150 strings naming Hylki in src/, found {renamed}")
+# Golden files the tests compare those strings with.
+for path in sorted(Path("src").rglob("testdata/**/*")):
+    if path.is_file():
+        try:
+            text = path.read_text()
+        except UnicodeDecodeError:
+            continue
+        if USER_HYLKI.search(text):
+            path.write_text(USER_HYLKI.sub(lambda _: APP_NAME, text))
+# The credits, in the About window: who the app is built on, and that the
+# coffee goes to them.
+sub(about, r'i18n\("© 2026 Hyprlab"\)', literal(f'i18n("{CREDIT_FOOTER}")'), count=1)
+sub(about, r'\.title\(i18n\("Buy Me a Coffee"\)\)', literal(f'.title(i18n("{CREDIT_COFFEE}"))'), count=1)
 
 # --- The Flatpak manifest ---------------------------------------------------
 # Upstream's manifest pins a tagged commit of hyprlab/hylki. A pinned source

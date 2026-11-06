@@ -1,6 +1,6 @@
-# Lafafa
+# Lifafa
 
-Lafafa is the email client of the TunaOS office suite,
+Lifafa is the email client of the TunaOS office suite,
 [tuna-os/gtk-office-suite](https://github.com/tuna-os/gtk-office-suite),
 alongside Letters, Tables and Decks. Its name is a word for envelope. It is
 [Hylki](https://github.com/hyprlab/hylki) by hyprlab with native
@@ -8,7 +8,7 @@ alongside Letters, Tables and Decks. Its name is a word for envelope. It is
 built from this soft fork, [tuna-os/hylki](https://github.com/tuna-os/hylki).
 Upstream declined both providers, so the fork carries them and follows
 upstream for everything else. It belongs to the suite by name, icon and
-packaging; the code lives here. It ships as its own app, `org.tunaos.lafafa`,
+packaging; the code lives here. It ships as its own app, `org.tunaos.lifafa`,
 which installs beside upstream Hylki and shares none of its state.
 
 Neither Tuta nor Proton endorses third-party clients built this way; use them
@@ -21,9 +21,9 @@ off on tuna-os/hylki; report problems on the
 
 | File | What it does |
 | --- | --- |
-| `rebrand.sh` | Turns a copy of the tree into Lafafa before it is built |
-| `icons/` | Lafafa's icon in the suite's style, and its 256 and 512 pixel renders |
-| `import-from-hylki.sh` | Copies upstream Hylki's accounts, settings and passwords into Lafafa |
+| `rebrand.sh` | Turns a copy of the tree into Lifafa before it is built |
+| `icons/` | Lifafa's icon in the suite's style, and its 256 and 512 pixel renders |
+| `import-from-hylki.sh` | Copies upstream Hylki's accounts, settings and passwords into Lifafa |
 | `MAINTAINING.md` | The fork's boundary and upstreaming policy |
 | `touchpoints.txt`, `check-touchpoints.sh` | The upstream files the fork modifies, and the check that keeps that list honest |
 
@@ -44,32 +44,32 @@ bug tracker and source links, and the icon. A rename edits those lines and
 nothing else; `fork-release.yml` and `import-from-hylki.sh` read them through
 `fork/rebrand.sh --identity`. With the current values it rewrites:
 
-- **App ID** `co.hyprlab.Hylki` becomes `org.tunaos.lafafa`, lowercase like
+- **App ID** `co.hyprlab.Hylki` becomes `org.tunaos.lifafa`, lowercase like
   the suite's `org.tunaos.letters`: the Rust constant in `main.rs`, the
   desktop file, metainfo, D-Bus restart service, icons and the GNOME Files
   extension. Every file named after the ID is renamed.
-- **Keyring** entries are stored under the service `org.tunaos.lafafa`, so
+- **Keyring** entries are stored under the service `org.tunaos.lifafa`, so
   they never collide with upstream's.
-- **Display name** "Lafafa": launcher, metainfo, the window and About titles,
+- **Display name** "Lifafa": launcher, metainfo, the window and About titles,
   the wordmark the About window and the welcome wizard show (the name in
   Cantarell beside the icon, generated in place of upstream's "Hylki"
   artwork), the Files extension's menu item, and the tray. The po catalogues
   translate "Hylki", so these strings show untranslated, which is right for a
   name. Upstream's other strings that mention Hylki in a sentence, such as
   "Welcome to Hylki", are left as they are with their translations.
-- **Icon**: `fork/icons/org.tunaos.lafafa.svg`, an envelope on the suite's
+- **Icon**: `fork/icons/org.tunaos.lifafa.svg`, an envelope on the suite's
   blue pad, replaces Hylki's icon in the launcher's hicolor icons, the in-app
   icon resource and the PNG the app embeds for Settings → App icon. The tray's
   symbolic icon and the alternative icons in Settings stay upstream's.
 - **Directories** under the XDG config, data, cache and runtime bases are
-  `lafafa` instead of `hylki`, so a native build does not share state with
+  `lifafa` instead of `hylki`, so a native build does not share state with
   upstream either. The Files extension gets its own file name.
 - **Metainfo** follows the suite's: its summary, `developer_name`, a first
   paragraph naming the Hanthor Office Suite and one crediting Hylki, then
   Hylki's own description and releases, which describe the code being built.
 - **Links**: the About window, the welcome page and the metainfo homepage and
   bug tracker point at the suite; the source link points here.
-- **Manifest**: `fork/org.tunaos.lafafa.yml` is written from upstream's
+- **Manifest**: `fork/org.tunaos.lifafa.yml` is written from upstream's
   `co.hyprlab.Hylki.yml` through `tools/local-manifest.sh`. Upstream's pins
   a tagged commit of hyprlab/hylki, which would build without the rebrand, so
   the fork's builds the rebranded tree it sits in. Every module, including the
@@ -112,11 +112,11 @@ the `workflow` scope; the job pushes with it when it is set.
 
 ## Building
 
-Releases are tagged `v<upstream-version>-tuna<N>`, for example `v1.47.1-tuna2`.
+Releases are tagged `v<upstream-version>-tuna<N>`, for example `v1.47.1-tuna3`.
 A tag, or a manual run of `.github/workflows/fork-release.yml` given such a
-tag, builds `org.tunaos.lafafa-<version>.flatpak` (x86_64) and
-`org.tunaos.lafafa-<version>-aarch64.flatpak` and attaches both, with their
-`SHA256SUMS`, to a GitHub release titled "Lafafa <version>". A manual run on a
+tag, builds `org.tunaos.lifafa-<version>.flatpak` (x86_64) and
+`org.tunaos.lifafa-<version>-aarch64.flatpak` and attaches both, with their
+`SHA256SUMS`, to a GitHub release titled "Lifafa <version>". A manual run on a
 branch builds the same bundles as workflow artifacts only. Upstream's
 `build-arm64.yml` also runs for these tags, because it matches every `v*` tag;
 its upstream-branded artifact can be ignored.
@@ -132,16 +132,16 @@ flatpak-cargo-generator.py Cargo.lock -o cargo-sources.json
 
 rsync -a --delete --exclude=.git --exclude=/target \
     --exclude=/native/tuta-unofficial-sdk/target \
-    --exclude=/native/tuta-unofficial-sdk/upstream ./ /tmp/lafafa/
-fork/rebrand.sh /tmp/lafafa
+    --exclude=/native/tuta-unofficial-sdk/upstream ./ /tmp/lifafa/
+fork/rebrand.sh /tmp/lifafa
 flatpak-builder --user --install --force-clean \
-    --state-dir=/tmp/lafafa-state /tmp/lafafa-build \
-    /tmp/lafafa/fork/org.tunaos.lafafa.yml
-flatpak run org.tunaos.lafafa
+    --state-dir=/tmp/lifafa-state /tmp/lifafa-build \
+    /tmp/lifafa/fork/org.tunaos.lifafa.yml
+flatpak run org.tunaos.lifafa
 ```
 
 The icon's PNGs are rendered from the SVG; after changing it, run
-`rsvg-convert -w N -h N fork/icons/org.tunaos.lafafa.svg -o fork/icons/org.tunaos.lafafa-N.png`
+`rsvg-convert -w N -h N fork/icons/org.tunaos.lifafa.svg -o fork/icons/org.tunaos.lifafa-N.png`
 for N of 256 and 512.
 
 The bundles are unsigned single files. Publishing a signed OSTree repository
@@ -149,7 +149,7 @@ on GitHub Pages, so that `flatpak update` follows releases, is still to do.
 
 ## Moving over from upstream Hylki
 
-Lafafa starts empty. Hylki's own carry-over from its earlier names
+Lifafa starts empty. Hylki's own carry-over from its earlier names
 (`src/desktop/legacy.rs`) does not fit here. It is built for a predecessor
 that is being replaced: it renames that app's directories in place and takes
 over its Files extension. Upstream Hylki keeps running beside the fork, so
@@ -163,11 +163,12 @@ fork/import-from-hylki.sh
 
 It copies the config, data and cache directories from upstream's Flatpak
 (`~/.var/app/co.hyprlab.Hylki`), or from a native install (`~/.config/hylki`
-and its siblings), into `~/.var/app/org.tunaos.lafafa/*/lafafa`. It then
+and its siblings), into `~/.var/app/org.tunaos.lifafa/*/lifafa`. It then
 copies every keyring entry from the `co.hyprlab.Hylki` service to
-`org.tunaos.lafafa` with `secret-tool`. Nothing that already exists is
+`org.tunaos.lifafa` with `secret-tool`. Nothing that already exists is
 overwritten, and upstream's data is left as it was. Without `secret-tool`,
 passwords and sign-ins are asked for again on first use.
 
 The fork's first release, Hylki Tuna (`org.tunaos.Hylki`, v1.47.1-tuna1), was
-withdrawn after a day in favour of Lafafa; nothing is carried over from it.
+withdrawn after a day in favour of Lifafa, and v1.47.1-tuna2 for a misspelling
+of the name; nothing is carried over from either.

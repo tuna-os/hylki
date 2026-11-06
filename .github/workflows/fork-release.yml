@@ -1,7 +1,7 @@
 name: Fork release
 run-name: Fork release ${{ inputs.ref || github.ref_name }}
 
-# Builds the fork's own app (Lafafa, the TunaOS office suite's email client,
+# Builds the fork's own app (Lifafa, the TunaOS office suite's email client,
 # at the time of writing) as a Flatpak bundle for x86_64 and aarch64 and
 # attaches both to the tag's GitHub release. Its name and app ID come from the
 # identity block at the top of fork/rebrand.sh, which rebrands the checkout

@@ -1,10 +1,10 @@
 #!/usr/bin/env bash
 # shellcheck disable=SC2034 # the identity block is read through ${!name}
 #
-# Turn a checkout of Hylki into Lafafa, the TunaOS office suite's email client,
+# Turn a checkout of Hylki into Lifafa, the TunaOS office suite's email client,
 # in place.
 #
-#   cp -a . /tmp/lafafa && fork/rebrand.sh /tmp/lafafa
+#   cp -a . /tmp/lifafa && fork/rebrand.sh /tmp/lifafa
 #   fork/rebrand.sh --identity      # print the identity below as KEY=value
 #
 # The fork's source keeps upstream's co.hyprlab.Hylki strings so that merging
@@ -33,10 +33,10 @@ set -euo pipefail
 # --- Identity ---------------------------------------------------------------
 # Everything the app is called. A rename edits these lines and nothing else;
 # fork-release.yml and import-from-hylki.sh read them through --identity.
-APP_ID=org.tunaos.lafafa
-APP_NAME=Lafafa
-DATA_DIR_NAME=lafafa
-KEYRING_SERVICE=org.tunaos.lafafa
+APP_ID=org.tunaos.lifafa
+APP_NAME=Lifafa
+DATA_DIR_NAME=lifafa
+KEYRING_SERVICE=org.tunaos.lifafa
 DESKTOP_COMMENT='Email client — TunaOS office suite'
 SUMMARY='Email client for the GNOME desktop'
 DEVELOPER_NAME='Hanthor Contributors'
@@ -46,7 +46,7 @@ BUGTRACKER=https://github.com/tuna-os/gtk-office-suite/issues
 SOURCE_URL=https://github.com/tuna-os/hylki
 # The app icon; its 256 and 512 pixel renders sit beside it as -256.png and
 # -512.png (rsvg-convert -w N -h N).
-ICON=fork/icons/org.tunaos.lafafa.svg
+ICON=fork/icons/org.tunaos.lifafa.svg
 # ---------------------------------------------------------------------------
 
 IDENTITY=(APP_ID APP_NAME DATA_DIR_NAME KEYRING_SERVICE DESKTOP_COMMENT SUMMARY

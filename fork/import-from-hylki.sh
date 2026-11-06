@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 #
 # Copy upstream Hylki's accounts, settings, mail cache and keyring entries into
-# the fork's app (Lafafa), once, before its first start.
+# the fork's app (Lifafa), once, before its first start.
 #
 #   fork/import-from-hylki.sh
 #

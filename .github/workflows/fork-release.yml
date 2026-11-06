@@ -1,12 +1,13 @@
-name: Hylki Tuna release
-run-name: Hylki Tuna ${{ inputs.ref || github.ref_name }}
+name: Fork release
+run-name: Fork release ${{ inputs.ref || github.ref_name }}
 
-# Builds Hylki Tuna (org.tunaos.Hylki), the fork's own app, as a Flatpak
-# bundle for x86_64 and aarch64 and attaches both to the tag's GitHub release.
-# The checkout is rebranded by fork/rebrand.sh first; it writes
-# fork/org.tunaos.Hylki.yml, which builds that rebranded tree with the same
-# recipe as upstream's manifest: the runtime, poppler, the dictionaries, and
-# the Tuta (Rust) and Proton (Go) helpers. See fork/README.md.
+# Builds the fork's own app (Lafafa, the TunaOS office suite's email client,
+# at the time of writing) as a Flatpak bundle for x86_64 and aarch64 and
+# attaches both to the tag's GitHub release. Its name and app ID come from the
+# identity block at the top of fork/rebrand.sh, which rebrands the checkout
+# first and writes fork/<APP_ID>.yml: that builds the rebranded tree with the
+# same recipe as upstream's manifest, the runtime, poppler, the dictionaries,
+# and the Tuta (Rust) and Proton (Go) helpers. See fork/README.md.
 #
 # The bundles are unsigned single files. A signed OSTree repository on Pages,
 # which `flatpak update` could follow, is not published yet.
@@ -41,6 +42,8 @@ jobs:
     outputs:
       tag: ${{ steps.version.outputs.tag }}
       version: ${{ steps.version.outputs.version }}
+      app_id: ${{ steps.version.outputs.app_id }}
+      app_name: ${{ steps.version.outputs.app_name }}
 
     steps:
       - uses: actions/checkout@v4
@@ -54,21 +57,31 @@ jobs:
       - name: Pick the version
         id: version
         run: |
+          # The app's ID and name, for this step and the ones below.
+          APP_ID=$(fork/rebrand.sh --identity | sed -n 's/^APP_ID=//p')
+          APP_NAME=$(fork/rebrand.sh --identity | sed -n 's/^APP_NAME=//p')
+          test -n "$APP_ID" && test -n "$APP_NAME"
+          {
+            echo "APP_ID=$APP_ID"
+            echo "APP_NAME=$APP_NAME"
+          } >> "$GITHUB_ENV"
           ref="${{ inputs.ref || github.ref_name }}"
           case "$ref" in
             v*-tuna*) tag="$ref"; version="${ref#v}" ;;
             *) tag=""; version="$(sed -n 's/^version = "\(.*\)"/\1/p' Cargo.toml | head -1)-tuna.g$(git rev-parse --short HEAD)" ;;
           esac
           case "${{ matrix.arch }}" in
-            x86_64) bundle="org.tunaos.Hylki-$version.flatpak" ;;
-            *) bundle="org.tunaos.Hylki-$version-${{ matrix.arch }}.flatpak" ;;
+            x86_64) bundle="$APP_ID-$version.flatpak" ;;
+            *) bundle="$APP_ID-$version-${{ matrix.arch }}.flatpak" ;;
           esac
           {
             echo "tag=$tag"
             echo "version=$version"
             echo "bundle=$bundle"
+            echo "app_id=$APP_ID"
+            echo "app_name=$APP_NAME"
           } >> "$GITHUB_OUTPUT"
-          echo "building Hylki Tuna $version for ${{ matrix.arch }}${tag:+, release $tag}"
+          echo "building $APP_NAME $version for ${{ matrix.arch }}${tag:+, release $tag}"
 
       - name: Install flatpak-builder
         run: |
@@ -138,7 +151,7 @@ jobs:
           flatpak-builder --user --force-clean --disable-rofiles-fuse \
             --state-dir="$RUNNER_TEMP/flatpak-state" \
             --repo="$RUNNER_TEMP/repo" --default-branch=stable \
-            "$RUNNER_TEMP/build-dir" fork/org.tunaos.Hylki.yml
+            "$RUNNER_TEMP/build-dir" "fork/$APP_ID.yml"
 
       - name: Check the result
         run: |
@@ -151,20 +164,21 @@ jobs:
             file -L "$files/bin/$bin" | tee /dev/stderr | grep -q "$want_arch"
           done
           want="$(sed -n 's/^version = "\(.*\)"/\1/p' Cargo.toml | head -1)"
-          grep -q "version=\"$want\"" "$files/share/metainfo/org.tunaos.Hylki.metainfo.xml" \
+          grep -q "version=\"$want\"" "$files/share/metainfo/$APP_ID.metainfo.xml" \
             || { echo "built app is not $want" >&2; exit 1; }
-          grep -qx 'Name=Hylki Tuna' "$files/share/applications/org.tunaos.Hylki.desktop"
+          grep -qx "Name=$APP_NAME" "$files/share/applications/$APP_ID.desktop"
+          test -s "$files/share/icons/hicolor/scalable/apps/$APP_ID.svg"
 
       - name: Bundle
         run: |
           flatpak build-bundle --arch=${{ matrix.arch }} \
             --runtime-repo=https://flathub.org/repo/flathub.flatpakrepo \
-            "$RUNNER_TEMP/repo" "${{ steps.version.outputs.bundle }}" org.tunaos.Hylki stable
+            "$RUNNER_TEMP/repo" "${{ steps.version.outputs.bundle }}" "$APP_ID" stable
           sha256sum "${{ steps.version.outputs.bundle }}"
 
       - uses: actions/upload-artifact@v4
         with:
-          name: hylki-tuna-${{ matrix.arch }}
+          name: fork-release-${{ matrix.arch }}
           path: ${{ steps.version.outputs.bundle }}
           retention-days: 30
           if-no-files-found: error
@@ -181,17 +195,19 @@ jobs:
       GH_REPO: ${{ github.repository }}
       TAG: ${{ needs.build.outputs.tag }}
       VERSION: ${{ needs.build.outputs.version }}
+      APP_ID: ${{ needs.build.outputs.app_id }}
+      APP_NAME: ${{ needs.build.outputs.app_name }}
     steps:
       - uses: actions/download-artifact@v4
         with:
-          pattern: hylki-tuna-*
+          pattern: fork-release-*
           merge-multiple: true
 
       - name: Attach the bundles
         run: |
           sha256sum ./*.flatpak > SHA256SUMS
           if ! gh release view "$TAG" >/dev/null 2>&1; then
-            gh release create "$TAG" --verify-tag --title "Hylki Tuna $VERSION" \
-              --notes "Hylki Tuna $VERSION: Hylki with native Tuta and Proton Mail accounts, as a Flatpak bundle for x86_64 and aarch64. Install with \`flatpak install --user org.tunaos.Hylki-$VERSION.flatpak\`; it sits beside upstream Hylki and keeps its own data."
+            gh release create "$TAG" --verify-tag --title "$APP_NAME $VERSION" \
+              --notes "$APP_NAME $VERSION, the TunaOS office suite's email client: Hylki by hyprlab (https://github.com/hyprlab/hylki) with native Tuta and Proton Mail accounts, as a Flatpak bundle for x86_64 and aarch64. Install with \`flatpak install --user $APP_ID-$VERSION.flatpak\`; it sits beside upstream Hylki and keeps its own data."
           fi
           gh release upload "$TAG" ./*.flatpak SHA256SUMS --clobber

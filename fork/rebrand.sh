@@ -1,23 +1,26 @@
 #!/usr/bin/env bash
+# shellcheck disable=SC2034 # the identity block is read through ${!name}
 #
-# Turn a checkout of Hylki into Hylki Tuna (app ID org.tunaos.Hylki), in place.
+# Turn a checkout of Hylki into Lafafa, the TunaOS office suite's email client,
+# in place.
 #
-#   cp -a . /tmp/hylki-tuna && fork/rebrand.sh /tmp/hylki-tuna
+#   cp -a . /tmp/lafafa && fork/rebrand.sh /tmp/lafafa
+#   fork/rebrand.sh --identity      # print the identity below as KEY=value
 #
 # The fork's source keeps upstream's co.hyprlab.Hylki strings so that merging
 # hyprlab/hylki stays cheap; the rebrand is applied to a copy of the tree just
 # before it is built (CI runs it on its own throwaway checkout). It rewrites:
 #
-#   - the app ID in the Rust constants, the keyring service name, the desktop
-#     file, metainfo, D-Bus service, icons and the Files extension, renaming
-#     every file named after the ID;
-#   - the display name to "Hylki Tuna" (launcher, metainfo, window and About
-#     titles, tray);
-#   - the config, data, cache and runtime directory names from hylki to
-#     hylki-tuna, so a native build never shares state with upstream Hylki;
-#   - the project links and metainfo contacts to tuna-os/hylki;
-#   - the Flatpak manifest, written as fork/org.tunaos.Hylki.yml, which builds
-#     the rebranded tree it sits in.
+#   - the app ID in the Rust constants, the desktop file, metainfo, D-Bus
+#     service, icons and the Files extension, renaming every file named after
+#     the ID, and the keyring service name;
+#   - the display name (launcher, metainfo, window and About titles, the About
+#     and welcome wordmark, tray);
+#   - the config, data, cache and runtime directory names, so a native build
+#     never shares state with upstream Hylki;
+#   - the app icon, metainfo and project links, in the suite's style;
+#   - the Flatpak manifest, written as fork/<APP_ID>.yml, which builds the
+#     rebranded tree it sits in.
 #
 # Every rewrite names the text it expects. When upstream changes one of those
 # sites the script stops with the file and the pattern, and a final sweep
@@ -27,8 +30,37 @@
 # Running it again on a rebranded tree only re-runs that final sweep.
 set -euo pipefail
 
+# --- Identity ---------------------------------------------------------------
+# Everything the app is called. A rename edits these lines and nothing else;
+# fork-release.yml and import-from-hylki.sh read them through --identity.
+APP_ID=org.tunaos.lafafa
+APP_NAME=Lafafa
+DATA_DIR_NAME=lafafa
+KEYRING_SERVICE=org.tunaos.lafafa
+DESKTOP_COMMENT='Email client — TunaOS office suite'
+SUMMARY='Email client for the GNOME desktop'
+DEVELOPER_NAME='Hanthor Contributors'
+SUITE_NAME='Hanthor Office Suite'
+HOMEPAGE=https://github.com/tuna-os/gtk-office-suite
+BUGTRACKER=https://github.com/tuna-os/gtk-office-suite/issues
+SOURCE_URL=https://github.com/tuna-os/hylki
+# The app icon; its 256 and 512 pixel renders sit beside it as -256.png and
+# -512.png (rsvg-convert -w N -h N).
+ICON=fork/icons/org.tunaos.lafafa.svg
+# ---------------------------------------------------------------------------
+
+IDENTITY=(APP_ID APP_NAME DATA_DIR_NAME KEYRING_SERVICE DESKTOP_COMMENT SUMMARY
+    DEVELOPER_NAME SUITE_NAME HOMEPAGE BUGTRACKER SOURCE_URL ICON)
+if [ "${1:-}" = --identity ]; then
+    for name in "${IDENTITY[@]}"; do
+        printf '%s=%s\n' "$name" "${!name}"
+    done
+    exit 0
+fi
+
 if [ $# -ne 1 ]; then
     echo "usage: $0 <tree>   (rewrites <tree> in place; run it on a copy)" >&2
+    echo "       $0 --identity" >&2
     exit 2
 fi
 TREE="$(cd "$1" && pwd)"
@@ -40,24 +72,34 @@ if [ "$TREE" = "$(cd "$HERE/.." && pwd)" ] && [ -z "${HYLKI_REBRAND_IN_PLACE:-}"
     echo "(or set HYLKI_REBRAND_IN_PLACE=1 on a throwaway checkout)" >&2
     exit 2
 fi
+for name in "${IDENTITY[@]}"; do
+    export "${name?}"
+done
 
 exec python3 - "$TREE" <<'PY'
 import os
 import re
+import shutil
 import subprocess
 import sys
 from pathlib import Path
+from xml.sax.saxutils import escape
 
 tree = Path(sys.argv[1])
 os.chdir(tree)
 
 OLD_ID = "co.hyprlab.Hylki"
-NEW_ID = "org.tunaos.Hylki"
-NAME = "Hylki Tuna"
-DIR = "hylki-tuna"
-REPO = "https://github.com/tuna-os/hylki"
+APP_ID = os.environ["APP_ID"]
+APP_NAME = os.environ["APP_NAME"]
+DIR = os.environ["DATA_DIR_NAME"]
+KEYRING = os.environ["KEYRING_SERVICE"]
+SOURCE_URL = os.environ["SOURCE_URL"]
+ICON = Path(os.environ["ICON"])
 STAMP = Path("fork/.rebranded")
-MANIFEST = Path("fork/org.tunaos.Hylki.yml")
+MANIFEST = Path(f"fork/{APP_ID}.yml")
+# A name usable inside an identifier (the Files extension's menu item).
+IDENT = re.sub(r"\W", "", APP_NAME)
+x = escape
 
 
 def fail(message):
@@ -77,11 +119,22 @@ def sub(path, pattern, replacement, count=None, flags=re.M):
     path.write_text(new)
 
 
+def literal(text):
+    """`text` as a regex replacement, with no group references in it."""
+    return text.replace("\\", "\\\\")
+
+
 def rename(old, new):
     old, new = Path(old), Path(new)
     if not old.exists():
         fail(f"{old} is missing")
     old.rename(new)
+
+
+def install(source, target):
+    if not Path(target).is_file():
+        fail(f"{target} is missing")
+    shutil.copyfile(source, target)
 
 
 def text_files(*roots):
@@ -118,10 +171,15 @@ def sweep_check():
 
 if STAMP.exists():
     sweep_check()
-    print(f"rebrand: {tree} is already Hylki Tuna")
+    print(f"rebrand: {tree} is already {APP_NAME}")
     sys.exit(0)
 
-# --- Files named after the app ID -----------------------------------------
+icon_png = {size: ICON.with_name(f"{ICON.stem}-{size}.png") for size in (256, 512)}
+for path in (ICON, *icon_png.values()):
+    if not path.is_file():
+        sys.exit(f"rebrand: the icon {path} is missing")
+
+# --- Files named after the app ID -------------------------------------------
 expected_files = [
     "data/co.hyprlab.Hylki.desktop",
     "data/co.hyprlab.Hylki.metainfo.xml",
@@ -137,93 +195,124 @@ for name in expected_files:
         fail(f"{name} is missing")
 for root in SWEPT:
     for path in sorted(Path(root).rglob("*" + OLD_ID + "*")):
-        rename(path, path.with_name(path.name.replace(OLD_ID, NEW_ID)))
+        rename(path, path.with_name(path.name.replace(OLD_ID, APP_ID)))
 
 # The GNOME Files extension is installed on the host beside upstream's, so it
 # needs a file name, a load marker and a menu item name of its own.
-rename("data/nautilus/hylki-nautilus.py", "data/nautilus/hylki-tuna-nautilus.py")
+nautilus = f"data/nautilus/{DIR}-nautilus.py"
+rename("data/nautilus/hylki-nautilus.py", nautilus)
 sub(
     "src/desktop/nautilus_ext.rs",
     r'"\.\./\.\./data/nautilus/hylki-nautilus\.py"',
-    '"../../data/nautilus/hylki-tuna-nautilus.py"',
+    literal(f'"../../{nautilus}"'),
     count=1,
 )
 sub("src/desktop/nautilus_ext.rs", r'FILE_NAME: &str = "hylki-nautilus\.py"',
-    'FILE_NAME: &str = "hylki-tuna-nautilus.py"', count=1)
+    literal(f'FILE_NAME: &str = "{DIR}-nautilus.py"'), count=1)
 sub("src/desktop/nautilus_ext.rs", r'"\.hylki-nautilus\.loaded"',
-    '".hylki-tuna-nautilus.loaded"', count=1)
-nautilus = "data/nautilus/hylki-tuna-nautilus.py"
-sub(nautilus, r'"\.hylki-nautilus\.loaded"', '".hylki-tuna-nautilus.loaded"', count=1)
-sub(nautilus, r'"hylki", "launcher"', f'"{DIR}", "launcher"', count=1)
-sub(nautilus, r'name="HylkiMenuProvider::send"', 'name="HylkiTunaMenuProvider::send"', count=1)
-sub(nautilus, r'^(\s*"(?:label|tip)": ".*)\bHylki\b', rf"\1{NAME}")
+    literal(f'".{DIR}-nautilus.loaded"'), count=1)
+sub(nautilus, r'"\.hylki-nautilus\.loaded"', literal(f'".{DIR}-nautilus.loaded"'), count=1)
+sub(nautilus, r'"hylki", "launcher"', literal(f'"{DIR}", "launcher"'), count=1)
+sub(nautilus, r'name="HylkiMenuProvider::send"', literal(f'name="{IDENT}MenuProvider::send"'), count=1)
+sub(nautilus, r'^(\s*"(?:label|tip)": ".*)\bHylki\b', lambda m: m.group(1) + APP_NAME)
 
-# --- The app ID, everywhere it is read at run time or installed -----------
+# --- The app ID, everywhere it is read at run time or installed -------------
 # Required sites first, so a renamed constant fails here instead of slipping
 # past the sweep.
-sub("src/main.rs", r'^    "co\.hyprlab\.Hylki"$', f'    "{NEW_ID}"', count=1)
-sub("src/main.rs", r'^    "co\.hyprlab\.Hylki\.Beta"$', f'    "{NEW_ID}.Beta"', count=1)
+sub("src/main.rs", r'^    "co\.hyprlab\.Hylki"$', literal(f'    "{APP_ID}"'), count=1)
+sub("src/main.rs", r'^    "co\.hyprlab\.Hylki\.Beta"$', literal(f'    "{APP_ID}.Beta"'), count=1)
 # Credentials live under their own Secret Service name, apart from upstream's.
 sub("src/config/secrets.rs", r'KEYRING_SERVICE: &str = "co\.hyprlab\.Hylki";',
-    f'KEYRING_SERVICE: &str = "{NEW_ID}";', count=1)
-sub("data/org.tunaos.Hylki.Restart.service", r"^Name=co\.hyprlab\.Hylki\.Restart$",
-    f"Name={NEW_ID}.Restart", count=1)
-sub("data/org.tunaos.Hylki.desktop", r"^Icon=co\.hyprlab\.Hylki$", f"Icon={NEW_ID}", count=1)
-sub("data/org.tunaos.Hylki.desktop", r"^StartupWMClass=co\.hyprlab\.Hylki$",
-    f"StartupWMClass={NEW_ID}", count=1)
-sub("data/org.tunaos.Hylki.metainfo.xml", r"<id>co\.hyprlab\.Hylki</id>", f"<id>{NEW_ID}</id>", count=1)
+    literal(f'KEYRING_SERVICE: &str = "{KEYRING}";'), count=1)
+sub("src/config/snapshot_tests.rs", r'assert_eq!\(KEYRING_SERVICE, "co\.hyprlab\.Hylki"\);',
+    literal(f'assert_eq!(KEYRING_SERVICE, "{KEYRING}");'), count=1)
+service = f"data/{APP_ID}.Restart.service"
+sub(service, r"^Name=co\.hyprlab\.Hylki\.Restart$", literal(f"Name={APP_ID}.Restart"), count=1)
+desktop = f"data/{APP_ID}.desktop"
+sub(desktop, r"^Icon=co\.hyprlab\.Hylki$", literal(f"Icon={APP_ID}"), count=1)
+sub(desktop, r"^StartupWMClass=co\.hyprlab\.Hylki$", literal(f"StartupWMClass={APP_ID}"), count=1)
+metainfo = f"data/{APP_ID}.metainfo.xml"
+sub(metainfo, r"<id>co\.hyprlab\.Hylki</id>", literal(f"<id>{APP_ID}</id>"), count=1)
 sub("resources/hylki.gresource.xml", r"icons/scalable/apps/co\.hyprlab\.Hylki\.svg",
-    f"icons/scalable/apps/{NEW_ID}.svg", count=1)
+    literal(f"icons/scalable/apps/{APP_ID}.svg"), count=1)
 # Then every other mention: icon includes, test expectations, comments.
 for path, text in text_files(*SWEPT):
     if OLD_ID in text:
-        path.write_text(text.replace(OLD_ID, NEW_ID))
+        path.write_text(text.replace(OLD_ID, APP_ID))
 # The bundled icons' resource prefix (/co/hyprlab/Hylki) is left alone: it is
 # private to the process, and main.rs pins the base path to it explicitly.
 
-# --- The display name -----------------------------------------------------
+# --- The app icon -----------------------------------------------------------
+# Everywhere the app's own icon is installed or embedded: the launcher's
+# hicolor icons, the in-app icon resource, and the PNG the app embeds for
+# Settings → App icon and the sign-in page. The symbolic icon and the
+# alternative icons in Settings stay upstream's.
+install(ICON, f"data/icons/hicolor/scalable/apps/{APP_ID}.svg")
+install(ICON, f"resources/icons/scalable/apps/{APP_ID}.svg")
+for size, png in icon_png.items():
+    install(png, f"data/icons/hicolor/{size}x{size}/apps/{APP_ID}.png")
+
+# --- The display name -------------------------------------------------------
 sub(
     "src/main.rs",
     r'(const APP_NAME: &str = if cfg!\(feature = "beta"\) \{\n    )"Hylki \(beta\)"(\n\} else \{\n    )"Hylki"',
-    rf'\1"{NAME} (beta)"\2"{NAME}"',
+    lambda m: f'{m.group(1)}"{APP_NAME} (beta)"{m.group(2)}"{APP_NAME}"',
     count=1,
 )
-sub("src/main.rs", r'set_application_name\("Hylki"\)', f'set_application_name("{NAME}")', count=1)
-sub("src/app/tray/indicator.rs", r'(fn title\(&self\) -> String \{\n\s*)"Hylki"', rf'\1"{NAME}"', count=1)
-# The About window's identity is the "Hylki" wordmark, an image; the name
-# goes under it as text.
-sub(
-    "src/app/about.rs",
-    r"^(    wm\.set_margin_bottom\(16\);\n    page\.append\(&wm\);\n)",
-    "\\1    let name = gtk::Label::new(Some(crate::APP_NAME));\n"
-    '    name.add_css_class("title-2");\n'
-    "    page.append(&name);\n",
-    count=1,
-)
-desktop = "data/org.tunaos.Hylki.desktop"
-sub(desktop, r"^Name=Hylki$", f"Name={NAME}", count=1)
+sub("src/main.rs", r'set_application_name\("Hylki"\)', literal(f'set_application_name("{APP_NAME}")'), count=1)
+sub("src/app/tray/indicator.rs", r'(fn title\(&self\) -> String \{\n\s*)"Hylki"',
+    lambda m: f'{m.group(1)}"{APP_NAME}"', count=1)
+# The wordmark the About window and the welcome wizard show is upstream's
+# "Hylki" lettering beside its icon, as an SVG on a 128x42 box. Ours is the
+# name in Cantarell beside the app icon, drawn by librsvg like theirs.
+icon_body = re.sub(r"\A\s*<svg[^>]*>|</svg>\s*\Z", "", ICON.read_text())
+for variant, color in (("black", "#1b1e32"), ("white", "#ffffff")):
+    path = Path(f"data/about/wordmark-{variant}.svg")
+    if not path.is_file():
+        fail(f"{path} is missing")
+    path.write_text(
+        '<svg xmlns="http://www.w3.org/2000/svg" width="128" height="42" viewBox="0 0 128 42">\n'
+        f'  <text x="1" y="30" font-family="Cantarell" font-weight="bold" font-size="25" fill="{color}">'
+        f"{x(APP_NAME)}</text>\n"
+        f'  <svg x="86" y="0" width="42" height="42" viewBox="0 0 128 128">{icon_body}</svg>\n'
+        "</svg>\n"
+    )
+desktop_comment = os.environ["DESKTOP_COMMENT"]
+sub(desktop, r"^Name=Hylki$", literal(f"Name={APP_NAME}"), count=1)
+sub(desktop, r"^Comment=.*$", literal(f"Comment={desktop_comment}"), count=1)
 # Not a rename of Vireo or Veem: those are upstream's own predecessors.
 sub(desktop, r"^# Earlier names.*\nX-Flatpak-RenamedFrom=.*\n", "", count=1)
-metainfo = "data/org.tunaos.Hylki.metainfo.xml"
-sub(metainfo, r"^  <name>Hylki</name>$", f"  <name>{NAME}</name>", count=1)
-sub(
-    metainfo,
-    r"^  <summary>.*</summary>$",
-    "  <summary>A GNOME email client with native Tuta and Proton Mail accounts</summary>",
-    count=1,
-)
+
+# --- Metainfo, in the office suite's style ----------------------------------
+# Upstream's releases stay as they are: the version and its notes describe
+# the code being built.
 sub(metainfo, r"^  <!-- Hylki was called .*-->\n  <replaces>\n(?:    <id>.*</id>\n)+  </replaces>\n", "", count=1)
+sub(metainfo, r"^  <name>Hylki</name>$", literal(f"  <name>{x(APP_NAME)}</name>"), count=1)
+sub(metainfo, r"^  <summary>.*</summary>$", literal(f"  <summary>{x(os.environ['SUMMARY'])}</summary>"), count=1)
 sub(
     metainfo,
     r"^(  <description>\n)",
-    r"\1    <p>\n      Hylki Tuna is Hylki with native Tuta and Proton Mail accounts, built\n"
-    r"      by the TunaOS project from a fork that follows upstream Hylki. It\n"
-    r"      installs beside Hylki and keeps its own settings, mail and passwords.\n"
-    r"    </p>\n",
+    lambda m: m.group(1)
+    + f"    <p>{x(APP_NAME)} is an email client for the GNOME desktop, part of the "
+    f"{x(os.environ['SUITE_NAME'])}.</p>\n"
+    # No scheme on the link: AppStream warns about plain-text URLs here.
+    "    <p>It is built on Hylki by hyprlab (github.com/hyprlab/hylki), with "
+    "native Tuta and Proton Mail accounts added. What follows is Hylki's own "
+    "description.</p>\n",
     count=1,
 )
+sub(metainfo, r"\bSend with Hylki entry\b", literal(f"Send with {x(APP_NAME)} entry"), count=1)
+sub(metainfo, r'<url type="homepage">https://hylki\.hyprlab\.co</url>',
+    literal(f'<url type="homepage">{x(os.environ["HOMEPAGE"])}</url>'), count=1)
+sub(metainfo, r'<url type="bugtracker">https://github\.com/hyprlab/hylki/issues</url>',
+    literal(f'<url type="bugtracker">{x(os.environ["BUGTRACKER"])}</url>'), count=1)
+sub(metainfo, r'<url type="vcs-browser">https://github\.com/hyprlab/hylki</url>',
+    literal(f'<url type="vcs-browser">{x(SOURCE_URL)}</url>'), count=1)
+sub(metainfo, r'<developer id="co\.hyprlab">\n    <name>Hyprlab</name>\n  </developer>\n  <update_contact>.*</update_contact>',
+    literal(f"<developer_name>{x(os.environ['DEVELOPER_NAME'])}</developer_name>"), count=1)
+sub(metainfo, r"raw\.githubusercontent\.com/hyprlab/hylki/", "raw.githubusercontent.com/tuna-os/hylki/")
 
-# --- Directories: hylki becomes hylki-tuna --------------------------------
+# --- Directories ------------------------------------------------------------
 # Config, data and cache all join "hylki" onto an XDG base; the MCP socket
 # joins it onto the runtime directory outside Flatpak.
 required_joins = [
@@ -240,37 +329,33 @@ for name in required_joins:
         fail(f'{name}: expected a .join("hylki…") directory')
 for path, text in text_files("src"):
     if path.suffix == ".rs" and joins.search(text):
-        path.write_text(joins.sub(rf'.join("{DIR}\1', text))
+        path.write_text(joins.sub(lambda m: f'.join("{DIR}{m.group(1)}', text))
 # The name an assistant's MCP client registers the server under.
-sub("src/mcp.rs", r'^    "hylki-beta"\n\} else \{\n    "hylki"$', f'    "{DIR}-beta"\n}} else {{\n    "{DIR}"', count=1)
+sub("src/mcp.rs", r'^    "hylki-beta"\n\} else \{\n    "hylki"$',
+    literal(f'    "{DIR}-beta"\n}} else {{\n    "{DIR}"'), count=1)
 
-# --- Project links and contacts -------------------------------------------
+# --- Project links ----------------------------------------------------------
 about = "src/app/about.rs"
-sub(about, r'"https://hylki\.hyprlab\.co"', f'"{REPO}"', count=1)
-sub(about, r'"https://github\.com/hyprlab/hylki/issues"', f'"{REPO}/issues"', count=1)
-sub(about, r'"https://github\.com/hyprlab/hylki",', f'"{REPO}",', count=1)
-sub("src/ui/welcome/pages.rs", r'"url", "https://github\.com/hyprlab/hylki"', f'"url", "{REPO}"', count=1)
-sub(metainfo, r'<url type="homepage">https://hylki\.hyprlab\.co</url>', f'<url type="homepage">{REPO}</url>', count=1)
-sub(metainfo, r'<url type="bugtracker">https://github\.com/hyprlab/hylki/issues</url>',
-    f'<url type="bugtracker">{REPO}/issues</url>', count=1)
-sub(metainfo, r'<url type="vcs-browser">https://github\.com/hyprlab/hylki</url>',
-    f'<url type="vcs-browser">{REPO}</url>', count=1)
-sub(metainfo, r'<developer id="co\.hyprlab">\n    <name>Hyprlab</name>\n  </developer>',
-    '<developer id="org.tunaos">\n    <name>TunaOS</name>\n  </developer>', count=1)
-sub(metainfo, r"<update_contact>.*</update_contact>", f"<update_contact>{REPO}/issues</update_contact>", count=1)
-sub(metainfo, r"raw\.githubusercontent\.com/hyprlab/hylki/", "raw.githubusercontent.com/tuna-os/hylki/")
+sub(about, r'"https://hylki\.hyprlab\.co"', literal(f'"{os.environ["HOMEPAGE"]}"'), count=1)
+sub(about, r'"https://github\.com/hyprlab/hylki/issues"', literal(f'"{os.environ["BUGTRACKER"]}"'), count=1)
+sub(about, r'"https://github\.com/hyprlab/hylki",', literal(f'"{SOURCE_URL}",'), count=1)
+sub("src/ui/welcome/pages.rs", r'"url", "https://github\.com/hyprlab/hylki"',
+    literal(f'"url", "{os.environ["BUGTRACKER"]}"'), count=1)
 
-# --- The Flatpak manifest -------------------------------------------------
+# --- The Flatpak manifest ---------------------------------------------------
 # Upstream's manifest pins a tagged commit of hyprlab/hylki. A pinned source
 # would be built without this rebrand, so the fork's manifest builds the tree
 # it sits in instead: tools/local-manifest.sh makes that conversion, and its
 # absolute paths are turned into ones relative to fork/.
 manifest = Path("co.hyprlab.Hylki.yml").read_text()
-manifest, n = re.subn(r"\A(?:#.*\n)+",
-    "# Flatpak manifest for Hylki Tuna (org.tunaos.Hylki), the TunaOS fork of\n"
-    f"# Hylki: {REPO}. Generated by fork/rebrand.sh from upstream's\n"
-    "# manifest; it builds the rebranded tree it sits in (fork/README.md).\n",
-    manifest)
+manifest, n = re.subn(
+    r"\A(?:#.*\n)+",
+    lambda m: f"# Flatpak manifest for {APP_NAME} ({APP_ID}), the TunaOS office suite's\n"
+    f"# email client, built on Hylki from {SOURCE_URL}. Generated by\n"
+    "# fork/rebrand.sh from upstream's manifest; it builds the rebranded tree it\n"
+    "# sits in (fork/README.md).\n",
+    manifest,
+)
 if n != 1:
     fail("co.hyprlab.Hylki.yml: expected a leading comment block")
 if not re.search(r"^id: co\.hyprlab\.Hylki$", manifest, re.M):
@@ -278,8 +363,8 @@ if not re.search(r"^id: co\.hyprlab\.Hylki$", manifest, re.M):
 for needed in ("  - name: hylki-tuta\n", "  - name: hylki-proton\n", "org.freedesktop.Sdk.Extension.golang"):
     if needed not in manifest:
         fail(f"co.hyprlab.Hylki.yml: expected {needed.strip()!r}")
-manifest = manifest.replace(OLD_ID, NEW_ID)
-staged = Path(f"{NEW_ID}.rebrand.yml")
+manifest = manifest.replace(OLD_ID, APP_ID)
+staged = Path(f"{APP_ID}.rebrand.yml")
 staged.write_text(manifest)
 try:
     subprocess.run(["tools/local-manifest.sh", str(MANIFEST.resolve()), str(staged.resolve())],
@@ -297,6 +382,6 @@ if root in manifest:
 MANIFEST.write_text(manifest)
 
 sweep_check()
-STAMP.write_text(f"{NEW_ID}\n")
-print(f"rebrand: {tree} is now {NAME} ({NEW_ID})")
+STAMP.write_text(f"{APP_ID}\n")
+print(f"rebrand: {tree} is now {APP_NAME} ({APP_ID})")
 PY

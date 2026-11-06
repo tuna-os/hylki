@@ -101,7 +101,7 @@ jobs:
         env:
           CARGO_TARGET_DIR: ${{ runner.temp }}/target
         run: |
-          tree="$RUNNER_TEMP/hylki-tuna"
+          tree="$RUNNER_TEMP/rebranded"
           rsync -a --delete --exclude=.git ./ "$tree/"
           fork/rebrand.sh "$tree"
           cd "$tree"

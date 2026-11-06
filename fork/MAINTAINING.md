@@ -1,8 +1,11 @@
 # Maintaining the Hylki soft fork
 
 This repository, tuna-os/hylki, is a soft fork of
-[hyprlab/hylki](https://github.com/hyprlab/hylki). It ships as **Hylki Tuna**
-(`org.tunaos.Hylki`) and installs next to upstream Hylki. It exists for one
+[hyprlab/hylki](https://github.com/hyprlab/hylki). It ships as **Lafafa**
+(`org.tunaos.lafafa`), the email client of the TunaOS office suite
+([tuna-os/gtk-office-suite](https://github.com/tuna-os/gtk-office-suite)),
+and installs next to upstream Hylki. The suite membership is branding and
+packaging only; the code stays here. The fork exists for one
 reason: upstream declined native Tuta
 ([#584](https://github.com/hyprlab/hylki/pull/584)) and native Proton
 ([#586](https://github.com/hyprlab/hylki/pull/586)) accounts, and we want
@@ -53,9 +56,10 @@ no Tuta or Proton account configured. If it would, it goes upstream.
   - The list should only shrink over time. Each provider-neutral seam
     upstream accepts removes lines from it.
 - **The app identity is not a touchpoint.** Source keeps upstream's
-  `co.hyprlab.Hylki`. `fork/rebrand.sh` rewrites it to `org.tunaos.Hylki`
-  ("Hylki Tuna", `hylki-tuna` data directories, the fork's keyring service)
-  at build time, so the rebrand never conflicts with upstream.
+  `co.hyprlab.Hylki`. `fork/rebrand.sh` rewrites it at build time from one
+  identity block at its top (today `org.tunaos.lafafa`, "Lafafa", `lafafa`
+  data directories, the fork's keyring service and icon), so the rebrand
+  never conflicts with upstream and a rename edits only that block.
 
 ## Keeping up with upstream
 
@@ -92,7 +96,7 @@ no Tuta or Proton account configured. If it would, it goes upstream.
    - no em dashes;
    - `tools/check-docs.py` passing.
 3. Make sure the diff never mentions Tuta, Proton, the fork or
-   `org.tunaos.Hylki`.
+   the fork's app (`org.tunaos.lafafa`, Lafafa).
 4. Open the PR from `tuna-os:<branch>` to `hyprlab:main`. Say what was
    verified and what was not (for example "not reproduced against a real
    account").
@@ -136,7 +140,7 @@ no Tuta or Proton account configured. If it would, it goes upstream.
 
 ## Releases
 
-- **Tags** are `v<upstream-version>-tuna<N>`, for example `v1.47.1-tuna1`, so
+- **Tags** are `v<upstream-version>-tuna<N>`, for example `v1.47.1-tuna2`, so
   the upstream base is always visible.
 - **Building:** `.github/workflows/fork-release.yml` builds the rebranded
   Flatpak (both helpers included) for x86_64 and aarch64 and attaches it to

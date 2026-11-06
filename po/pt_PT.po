@@ -292,6 +292,14 @@ msgstr "Expandir todas as mensagens"
 msgid "Collapse All Messages"
 msgstr "Recolher todas as mensagens"
 
+#, fuzzy
+msgid "Back to My Fonts and Colors"
+msgstr "Voltar aos meus tipos de letra e cores"
+
+#, fuzzy
+msgid "Show Sender's Fonts and Colors"
+msgstr "Mostrar os tipos de letra e as cores do remetente"
+
 msgid "View Source"
 msgstr "Ver fonte"
 
@@ -894,6 +902,10 @@ msgstr "expira em {date}"
 
 msgid "Sort by"
 msgstr "Ordenar por"
+
+#, fuzzy
+msgid "Use for All Folders"
+msgstr "Todas as pastas"
 
 msgid "Show only"
 msgstr "Mostrar apenas"
@@ -2626,9 +2638,8 @@ msgstr "Introduza primeiro o seu endereço de e-mail e a palavra-passe."
 msgid "Signing in…"
 msgstr "A iniciar sessão…"
 
-#, fuzzy
 msgid "✓ {provider}: signed in"
-msgstr "Sessão não iniciada"
+msgstr ""
 
 msgid "✗ {provider}: {e}"
 msgstr ""
@@ -3302,6 +3313,10 @@ msgstr "Tipo (Z–A)"
 
 msgid "Previous"
 msgstr "Anterior"
+
+#, fuzzy
+msgid "No preview available"
+msgstr "Não está disponível nenhuma pasta {v1}"
 
 msgid "Next"
 msgstr "Seguinte"
@@ -4124,7 +4139,7 @@ msgstr "Palavra-passe"
 
 #, fuzzy
 msgid "The account did not answer."
-msgstr "O serviço não aceitou a chave."
+msgstr "Ocultar as contas na barra lateral"
 
 #, fuzzy
 msgid "Cannot merge a confidential message"
@@ -5272,21 +5287,6 @@ msgid "Drag to resize, double-click for the usual width"
 msgstr ""
 "Arraste para redimensionar; clique duas vezes para repor a largura habitual"
 
-msgid "Mark as read"
-msgstr "Marcar como lida"
-
-msgid "Not spam"
-msgstr "Não é lixo eletrónico"
-
-msgid "Add sender to Contacts"
-msgstr "Adicionar remetente aos contactos"
-
-msgid "Mark as unread"
-msgstr "Marcar como não lida"
-
-msgid "Remove star"
-msgstr "Remover estrela"
-
 msgid "High importance"
 msgstr "Importância alta"
 
@@ -5424,48 +5424,6 @@ msgstr "Ocultar destinatários"
 
 msgid "Show recipients"
 msgstr "Mostrar destinatários"
-
-msgid "Mark as read or unread"
-msgstr "Marcar como lida ou não lida"
-
-msgid "Star this message"
-msgstr "Marcar esta mensagem com estrela"
-
-msgid "View source"
-msgstr "Ver fonte"
-
-msgid "Translate this message"
-msgstr "Traduzir esta mensagem"
-
-msgid "Reply to this message"
-msgstr "Responder a esta mensagem"
-
-msgid "Reply to everyone on this message"
-msgstr "Responder a todos nesta mensagem"
-
-msgid "Forward this message"
-msgstr "Reencaminhar esta mensagem"
-
-msgid "Move this message to a folder"
-msgstr "Mover esta mensagem para uma pasta"
-
-msgid "Archive this message"
-msgstr "Arquivar esta mensagem"
-
-msgid "Delete this message"
-msgstr "Eliminar esta mensagem"
-
-msgid "Back to my fonts and colors"
-msgstr "Voltar aos meus tipos de letra e cores"
-
-msgid "Show the sender's fonts and colors"
-msgstr "Mostrar os tipos de letra e as cores do remetente"
-
-msgid "Show remote content"
-msgstr "Mostrar conteúdo remoto"
-
-msgid "Block remote content"
-msgstr "Bloquear conteúdo remoto"
 
 msgid "Click to open this message"
 msgstr "Clique para abrir esta mensagem"
@@ -6222,15 +6180,6 @@ msgstr "Vista de leitura ativada"
 msgid "Reader View off"
 msgstr "Vista de leitura desativada"
 
-msgid "Hidden behind a toggle"
-msgstr "Oculto atrás de um botão de alternância"
-
-msgid "Shown while hovering"
-msgstr "Apresentado ao passar o ponteiro"
-
-msgid "Always visible"
-msgstr "Sempre visível"
-
 msgid "Ask each time"
 msgstr "Perguntar sempre"
 
@@ -6459,6 +6408,9 @@ msgstr "Reencaminhar esta mensagem"
 
 msgid "Each opens in a window for you to check and send."
 msgstr ""
+
+msgid "Mark as read or unread"
+msgstr "Marcar como lida ou não lida"
 
 #, fuzzy
 msgid "Add and remove stars"
@@ -6720,15 +6672,6 @@ msgstr "Colorir mensagens com etiquetas"
 msgid "In the color of its first tag."
 msgstr "Na cor da primeira etiqueta."
 
-msgid "Actions palette in the message list"
-msgstr "Paleta de ações na lista de mensagens"
-
-msgid "The ⋯ row under each message."
-msgstr "A linha ⋯ sob cada mensagem."
-
-msgid "Open the actions palette on hover"
-msgstr "Abrir a paleta de ações ao passar o ponteiro"
-
 msgid "Swipe actions"
 msgstr "Ações de deslize"
 
@@ -6748,12 +6691,6 @@ msgid "Raise it if swipes stop short. Mouse drags are unaffected."
 msgstr ""
 "Aumente se os gestos de deslizar ficarem incompletos. Os arrastamentos com o "
 "rato não são afetados."
-
-msgid "Actions palette timeout"
-msgstr "Tempo limite da paleta de ações"
-
-msgid "Seconds it stays open after the pointer leaves."
-msgstr "Segundos que permanece aberto depois de o ponteiro sair."
 
 msgid "Columns"
 msgstr "Colunas"
@@ -7164,6 +7101,9 @@ msgstr "Inserir"
 msgid "Show or hide folders"
 msgstr "Mostrar ou ocultar pastas"
 
+msgid "Long-press to expand or collapse"
+msgstr "Premir sem soltar para expandir ou recolher"
+
 msgid "Show or hide labels"
 msgstr "Mostrar ou ocultar classificações"
 
@@ -7268,9 +7208,6 @@ msgstr "Mostrar cada pasta de pesquisa"
 
 msgid "Show each address book"
 msgstr "Mostrar cada livro de endereços"
-
-msgid "Long-press to expand or collapse"
-msgstr "Premir sem soltar para expandir ou recolher"
 
 msgid "Show or hide tags"
 msgstr "Mostrar ou ocultar etiquetas"
@@ -7674,9 +7611,8 @@ msgstr "Código de verificação em dois passos (se utilizado)"
 msgid "Enter the account's mailbox password."
 msgstr "Introduza a palavra-passe."
 
-#, fuzzy
 msgid "The mailbox password was not accepted."
-msgstr "Código de verificação em dois passos (se utilizado)"
+msgstr ""
 
 msgid "The server wants to confirm that a person is signing in."
 msgstr ""
@@ -7724,11 +7660,8 @@ msgstr "O serviço não aceitou a chave."
 msgid "There is already a folder by that name there."
 msgstr "Não há texto para traduzir."
 
-#, fuzzy
 msgid "Tuta's own folders can't be changed."
 msgstr ""
-"O Microsoft 365 arquiva a sua própria cópia em Itens Enviados; isto não pode "
-"ser alterado."
 
 msgid "The account has reached Tuta's limit for that."
 msgstr ""
@@ -7756,7 +7689,7 @@ msgstr "O serviço não aceitou a chave."
 
 #, fuzzy
 msgid "The draft is no longer on the server."
-msgstr "Essa pasta não existe no servidor"
+msgstr "Esta mensagem é demasiado longa para enviar para tradução."
 
 #, fuzzy
 msgid "The server did not store the draft."
@@ -7774,7 +7707,7 @@ msgstr ""
 
 #, fuzzy
 msgid "The message could not be read, so it was not stored."
-msgstr "Não foi possível abrir o ficheiro"
+msgstr "Não foi possível mover uma mensagem para {account}: {error}"
 
 #, fuzzy
 msgid "The message is too large for Tuta to take in."
@@ -8820,6 +8753,9 @@ msgstr "Palavras adicionadas"
 msgid "Changes apply after a restart."
 msgstr "As alterações são aplicadas após reiniciar."
 
+msgid "Mark as read"
+msgstr "Marcar como lida"
+
 msgid "Conversations mark each message as it comes into view."
 msgstr ""
 "As conversas marcam cada mensagem à medida que esta entra no campo de visão."
@@ -8875,18 +8811,6 @@ msgstr "Tipo de letra de largura fixa"
 msgid "The system's monospace font unless another is chosen."
 msgstr ""
 "O tipo de letra de largura fixa do sistema, a menos que seja escolhido outro."
-
-msgid "Message card actions palette"
-msgstr "Paleta de ações dos cartões de mensagens"
-
-msgid "Message card actions palette timeout"
-msgstr "Tempo limite da paleta de ações dos cartões de mensagens"
-
-msgid "Message card actions palette as a menu"
-msgstr "Paleta de ações dos cartões de mensagens como menu"
-
-msgid "The ⋯ opens the right-click menu instead."
-msgstr "O ⋯ abre o menu de contexto em alternativa."
 
 msgid "Single messages as cards"
 msgstr "Mensagens individuais como cartões"
@@ -9234,13 +9158,86 @@ msgstr "A caixa de entrada unificada no modo claro"
 msgid "Hyprlab"
 msgstr "Hyprlab"
 
-#, fuzzy
-#~ msgid "✗ Tuta: {e}"
-#~ msgstr "✗ SMTP: {e}"
+#~ msgid "Not spam"
+#~ msgstr "Não é lixo eletrónico"
 
-#, fuzzy
-#~ msgid "This account can't take in mail from another account."
-#~ msgstr "Uma conta POP3 não pode receber correio de outra conta"
+#~ msgid "Add sender to Contacts"
+#~ msgstr "Adicionar remetente aos contactos"
+
+#~ msgid "Mark as unread"
+#~ msgstr "Marcar como não lida"
+
+#~ msgid "Remove star"
+#~ msgstr "Remover estrela"
+
+#~ msgid "Star this message"
+#~ msgstr "Marcar esta mensagem com estrela"
+
+#~ msgid "View source"
+#~ msgstr "Ver fonte"
+
+#~ msgid "Translate this message"
+#~ msgstr "Traduzir esta mensagem"
+
+#~ msgid "Reply to this message"
+#~ msgstr "Responder a esta mensagem"
+
+#~ msgid "Reply to everyone on this message"
+#~ msgstr "Responder a todos nesta mensagem"
+
+#~ msgid "Forward this message"
+#~ msgstr "Reencaminhar esta mensagem"
+
+#~ msgid "Move this message to a folder"
+#~ msgstr "Mover esta mensagem para uma pasta"
+
+#~ msgid "Archive this message"
+#~ msgstr "Arquivar esta mensagem"
+
+#~ msgid "Delete this message"
+#~ msgstr "Eliminar esta mensagem"
+
+#~ msgid "Show remote content"
+#~ msgstr "Mostrar conteúdo remoto"
+
+#~ msgid "Block remote content"
+#~ msgstr "Bloquear conteúdo remoto"
+
+#~ msgid "Hidden behind a toggle"
+#~ msgstr "Oculto atrás de um botão de alternância"
+
+#~ msgid "Shown while hovering"
+#~ msgstr "Apresentado ao passar o ponteiro"
+
+#~ msgid "Always visible"
+#~ msgstr "Sempre visível"
+
+#~ msgid "Actions palette in the message list"
+#~ msgstr "Paleta de ações na lista de mensagens"
+
+#~ msgid "The ⋯ row under each message."
+#~ msgstr "A linha ⋯ sob cada mensagem."
+
+#~ msgid "Open the actions palette on hover"
+#~ msgstr "Abrir a paleta de ações ao passar o ponteiro"
+
+#~ msgid "Actions palette timeout"
+#~ msgstr "Tempo limite da paleta de ações"
+
+#~ msgid "Seconds it stays open after the pointer leaves."
+#~ msgstr "Segundos que permanece aberto depois de o ponteiro sair."
+
+#~ msgid "Message card actions palette"
+#~ msgstr "Paleta de ações dos cartões de mensagens"
+
+#~ msgid "Message card actions palette timeout"
+#~ msgstr "Tempo limite da paleta de ações dos cartões de mensagens"
+
+#~ msgid "Message card actions palette as a menu"
+#~ msgstr "Paleta de ações dos cartões de mensagens como menu"
+
+#~ msgid "The ⋯ opens the right-click menu instead."
+#~ msgstr "O ⋯ abre o menu de contexto em alternativa."
 
 #~ msgid "Could not rename folder: unknown folder"
 #~ msgstr "Não foi possível renomear a pasta: pasta desconhecida"

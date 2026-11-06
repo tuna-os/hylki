@@ -5,9 +5,10 @@ name: Upstream sync
 # or a force push, so the fork's history and every tag on it stay valid.
 #
 # A merge that conflicts, breaks the fork's touchpoint list, no longer
-# rebrands, or no longer builds pushes nothing. It opens one issue labelled
-# upstream-sync instead (or updates the open one), naming what went wrong and
-# the conflicting files; the next clean run closes it. See fork/README.md.
+# rebrands, or no longer builds pushes nothing. The failed run's summary names
+# what went wrong and the conflicting files; where the repository has issues
+# on, it also opens one issue labelled upstream-sync (or updates the open one),
+# which the next clean run closes. See fork/README.md.
 #
 # GITHUB_TOKEN cannot push a commit that changes .github/workflows. When
 # upstream touches its workflows, the push fails and the issue says so: merge
@@ -114,6 +115,8 @@ jobs:
       - name: Close the sync issue
         if: success()
         run: |
+          # Issues may be turned off on the fork; then there is nothing to close.
+          [ "$(gh api "repos/$GITHUB_REPOSITORY" --jq .has_issues)" = true ] || exit 0
           number=$(gh issue list --label upstream-sync --state open --json number --jq '.[0].number // empty')
           if [ -n "$number" ]; then
             gh issue close "$number" --comment "Resolved: main contains hyprlab/hylki ${{ steps.merge.outputs.upstream }} ($GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID)."
@@ -158,6 +161,13 @@ jobs:
             echo
             echo "To resolve, merge by hand on a clone (\`git fetch upstream main && git merge upstream/main\`), fix, check with \`fork/rebrand.sh\` on a copy, and push to main. fork/README.md has the details."
           } > "$RUNNER_TEMP/issue.md"
+          # The run's summary always carries the report; the failed run is the
+          # alert. The issue is extra, and only where the fork has issues on.
+          cat "$RUNNER_TEMP/issue.md" >> "$GITHUB_STEP_SUMMARY"
+          if [ "$(gh api "repos/$GITHUB_REPOSITORY" --jq .has_issues)" != true ]; then
+            echo "::error::Upstream sync needs a hand; see the run summary."
+            exit 0
+          fi
           gh label create upstream-sync --color d93f0b \
             --description 'The daily merge of hyprlab/hylki needs a hand' 2>/dev/null || true
           number=$(gh issue list --label upstream-sync --state open --json number --jq '.[0].number // empty')

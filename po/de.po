@@ -7,7 +7,7 @@ msgstr ""
 "Project-Id-Version: hylki\n"
 "Report-Msgid-Bugs-To: https://github.com/hyprlab/hylki/issues\n"
 "POT-Creation-Date: \n"
-"PO-Revision-Date: 2026-11-01 18:29+0100\n"
+"PO-Revision-Date: 2026-11-03 22:25+0100\n"
 "Last-Translator: Samuel Edlmeier <samuel.edlmeier@gmx.net>\n"
 "Language-Team: German\n"
 "Language: de\n"
@@ -288,6 +288,14 @@ msgstr "Alle Nachrichten ausklappen"
 
 msgid "Collapse All Messages"
 msgstr "Alle Nachrichten einklappen"
+
+#, fuzzy
+msgid "Back to My Fonts and Colors"
+msgstr "Eigene Schriftarten und Farben verwenden"
+
+#, fuzzy
+msgid "Show Sender's Fonts and Colors"
+msgstr "Schriftarten und Farben des Absenders anzeigen"
 
 msgid "View Source"
 msgstr "Quelltext anzeigen"
@@ -817,31 +825,34 @@ msgid "Your answer has been sent: declined."
 msgstr "Antwort wurde gesendet: Abgelehnt."
 
 msgid "Retry"
-msgstr ""
+msgstr "Erneut versuchen"
 
-#, fuzzy
 msgid "Waiting for the keyring"
-msgstr "Wartet auf Versand"
+msgstr "Warten auf Schlüsselbund"
 
-#, fuzzy
 msgid "Couldn’t read the password"
-msgstr "Passwort eingeben"
+msgstr "Passwort konnte nicht gelesen werden"
 
-#, fuzzy
 msgid "The keyring gave an error for {accounts}: {error}"
-msgstr "Eine Nachricht konnte nicht in {account} verschoben werden: {error}"
+msgstr "Fehler des Schlüsselbunds für {accounts}: {error}"
 
 msgid "The keyring hasn’t answered for {accounts}. Mail connects once it does."
 msgstr ""
+"Schlüsselbund antwortet nicht für »{accounts}«. E-Mails werden abgerufen, "
+"sobald er bereit ist."
 
 msgid ""
 "Unlock the keyring, for example the Login keyring in Passwords and Keys."
 msgstr ""
+"Schlüsselbund entsperren (z. B. Login-Schlüsselbund in »Passwörter und "
+"Verschlüsselung«)."
 
 msgid ""
 "Unlock the keyring, for example the Login keyring in Passwords and Keys, "
 "then choose Retry."
 msgstr ""
+"Schlüsselbund entsperren (z. B. Login-Schlüsselbund in »Passwörter und "
+"Verschlüsselung«) und »Erneut versuchen« wählen."
 
 msgid "Date (Newest first)"
 msgstr "Datum (neueste zuerst)"
@@ -878,6 +889,10 @@ msgstr "Bis zum {date}"
 
 msgid "Sort by"
 msgstr "Sortieren nach"
+
+#, fuzzy
+msgid "Use for All Folders"
+msgstr "Alle Ordner"
 
 msgid "Show only"
 msgstr "Nur anzeigen"
@@ -916,24 +931,21 @@ msgstr[1] "Sende {n} Nachrichten…"
 
 #. Each one that failed has said why already, and waits in the
 #. Outbox, a refused one included.
-#, fuzzy
 msgid "Sent {n} of {total} message"
 msgid_plural "Sent {n} of {total} messages"
-msgstr[0] "Importieren von {done} von {total} Nachrichten…"
-msgstr[1] "Importieren von {done} von {total} Nachrichten…"
+msgstr[0] "{n} von {total} E-Mail gesendet"
+msgstr[1] "{n} von {total} E-Mails gesendet"
 
-#, fuzzy
 msgid "Sent {n} message"
 msgid_plural "Sent {n} messages"
-msgstr[0] "{n} E-Mail senden"
-msgstr[1] "{n} E-Mails senden"
+msgstr[0] "{n} E-Mail gesendet"
+msgstr[1] "{n} E-Mails gesendet"
 
 msgid "Stop"
-msgstr ""
+msgstr "Stopp"
 
-#, fuzzy
 msgid "Show Outbox"
-msgstr "Postausgang"
+msgstr "Postausgang anzeigen"
 
 #. Rightmost, beside the window controls, as in the main window.
 msgid "Actions"
@@ -2588,9 +2600,8 @@ msgstr "Zuerst E-Mail-Adresse und Passwort eingeben."
 msgid "Signing in…"
 msgstr "Anmeldung läuft…"
 
-#, fuzzy
 msgid "✓ {provider}: signed in"
-msgstr "Nicht angemeldet"
+msgstr ""
 
 msgid "✗ {provider}: {e}"
 msgstr ""
@@ -3262,6 +3273,10 @@ msgstr "Typ (Z–A)"
 msgid "Previous"
 msgstr "Vorherige"
 
+#, fuzzy
+msgid "No preview available"
+msgstr "Kein Ordner für {v1} verfügbar"
+
 msgid "Next"
 msgstr "Nächste"
 
@@ -3299,7 +3314,7 @@ msgid "Ends"
 msgstr "Ende"
 
 msgid "Alarm"
-msgstr "Erinnerungen"
+msgstr "Erinnerung"
 
 msgid "Second alarm"
 msgstr "Zweite Erinnerung"
@@ -3695,16 +3710,15 @@ msgstr "Adresse oder Domäne"
 msgid "Added"
 msgstr "Hinzugefügte Wörter"
 
-#, fuzzy
 msgid "Send without an attachment?"
-msgstr "Als normalen Anhang senden"
+msgstr "Ohne Anhang senden?"
 
 msgid "The message mentions “{word}”, but nothing is attached."
 msgstr ""
+"In der Nachricht wird »{word}« erwähnt, aber es ist keine Datei angehängt."
 
-#, fuzzy
 msgid "Send Anyway"
-msgstr "Jetzt senden"
+msgstr "Trotzdem senden"
 
 msgid "The file was moved or deleted. Attach it again from where it is now."
 msgstr ""
@@ -4078,7 +4092,7 @@ msgstr "Passwort"
 
 #, fuzzy
 msgid "The account did not answer."
-msgstr "Der Dienst hat den Schlüssel nicht akzeptiert."
+msgstr "Konten in der Seitenleiste ausblenden"
 
 #, fuzzy
 msgid "Cannot merge a confidential message"
@@ -4424,7 +4438,7 @@ msgstr ""
 "Beim Deaktivieren wird diese in Hylki nicht mehr verwendet."
 
 msgid "Look again for address books"
-msgstr "Look again for address books"
+msgstr "Erneut nach Adressbüchern suchen"
 
 msgid "Add Address Book…"
 msgstr "Adressbuch hinzufügen…"
@@ -4809,14 +4823,14 @@ msgid ""
 "This will remove the group {name} from your address book locally and on the "
 "server. The contacts are not removed."
 msgstr ""
-"Die Kontaktliste {name} wird lokal und auf dem Server aus dem Adressbuch "
+"Die Kontaktliste »{name}« wird lokal und auf dem Server aus dem Adressbuch "
 "entfernt. Die enthaltenen Kontakte bleiben erhalten."
 
 msgid ""
 "This will remove the group {name} from your address book. The contacts are "
 "not removed."
 msgstr ""
-"Die Kontaktliste {name} wird aus dem Adressbuch entfernt. Die enthaltenen "
+"Die Kontaktliste »{name}« wird aus dem Adressbuch entfernt. Die enthaltenen "
 "Kontakte bleiben erhalten."
 
 msgid "Delete Group?"
@@ -4826,10 +4840,11 @@ msgid ""
 "This will remove the contact {name} from your address book locally and on "
 "the server."
 msgstr ""
-"Der Kontakt {name} wird lokal und auf dem Server aus dem Adressbuch entfernt."
+"Der Kontakt »{name}« wird lokal und auf dem Server aus dem Adressbuch "
+"entfernt."
 
 msgid "This will remove the contact {name} from your address book."
-msgstr "Der Kontakt {name} wird aus dem Adressbuch entfernt."
+msgstr "Der Kontakt »{name}« wird aus dem Adressbuch entfernt."
 
 msgid "Delete Contact?"
 msgstr "Kontakt löschen?"
@@ -4951,7 +4966,7 @@ msgstr ""
 "hinzugefügt"
 
 msgid "Share a download link from {name}"
-msgstr "Download-Link von {name} teilen"
+msgstr "Download-Link von »{name}« teilen"
 
 msgid "Share a download link"
 msgstr "Download-Link teilen"
@@ -5009,7 +5024,7 @@ msgid "Choose a time later than now."
 msgstr "Uhrzeit in der Zukunft wählen."
 
 msgid "the portal answered response code {code}"
-msgstr "das Portal beantwortet Antwortcode {code}"
+msgstr "das Portal hat mit dem Antwortcode {code} geantwortet"
 
 msgid "The link could not be opened"
 msgstr "Der Link konnte nicht geöffnet werden"
@@ -5045,20 +5060,20 @@ msgid "In {places}"
 msgstr "In {places}"
 
 msgid "Takes under a minute"
-msgstr ""
+msgstr "Dauert weniger als eine Minute"
 
 msgid "Takes about a minute"
-msgstr ""
+msgstr "Dauert etwa eine Minute"
 
 msgid "Takes about {n} minute"
 msgid_plural "Takes about {n} minutes"
-msgstr[0] ""
-msgstr[1] ""
+msgstr[0] "Dauert etwa {n} Minute"
+msgstr[1] "Dauert etwa {n} Minuten"
 
 msgid "Takes about {n} hour"
 msgid_plural "Takes about {n} hours"
-msgstr[0] ""
-msgstr[1] ""
+msgstr[0] "Dauert etwa {n} Stunde"
+msgstr[1] "Dauert etwa {n} Stunden"
 
 msgid "Mail Merge"
 msgstr "Serienmail (Mail Merge)"
@@ -5085,17 +5100,16 @@ msgid "Leave these fields empty"
 msgstr "Diese Felder leer lassen"
 
 msgid "Limit sending rate"
-msgstr ""
+msgstr "Versandgeschwindigkeit begrenzen"
 
 msgid "Messages"
 msgstr "Nachrichten"
 
-#, fuzzy
 msgid "per minute"
-msgstr "Jede Minute"
+msgstr "pro Minute"
 
 msgid "per hour"
-msgstr ""
+msgstr "pro Stunde"
 
 msgid "{n} of {total}"
 msgstr "{n} von {total}"
@@ -5213,21 +5227,6 @@ msgstr "Unterhaltung anzeigen"
 
 msgid "Drag to resize, double-click for the usual width"
 msgstr "Ziehen zum Anpassen der Größe, Doppelklick für die Standardbreite"
-
-msgid "Mark as read"
-msgstr "Als gelesen markieren"
-
-msgid "Not spam"
-msgstr "Kein Spam"
-
-msgid "Add sender to Contacts"
-msgstr "Absender zu Kontakten hinzufügen"
-
-msgid "Mark as unread"
-msgstr "Als ungelesen markieren"
-
-msgid "Remove star"
-msgstr "Stern entfernen"
 
 msgid "High importance"
 msgstr "Wichtigkeit: hoch"
@@ -5365,48 +5364,6 @@ msgstr "Empfänger ausblenden"
 
 msgid "Show recipients"
 msgstr "Empfänger anzeigen"
-
-msgid "Mark as read or unread"
-msgstr "Als gelesen oder ungelesen markieren"
-
-msgid "Star this message"
-msgstr "Nachricht mit Stern markieren"
-
-msgid "View source"
-msgstr "Quelltext anzeigen"
-
-msgid "Translate this message"
-msgstr "Diese Nachricht übersetzen"
-
-msgid "Reply to this message"
-msgstr "Antwort auf diese Nachricht"
-
-msgid "Reply to everyone on this message"
-msgstr "Allen antworten auf diese Nachricht"
-
-msgid "Forward this message"
-msgstr "Nachricht weiterleiten"
-
-msgid "Move this message to a folder"
-msgstr "Nachricht in einen Ordner verschieben"
-
-msgid "Archive this message"
-msgstr "Nachricht archivieren"
-
-msgid "Delete this message"
-msgstr "Nachricht löschen"
-
-msgid "Back to my fonts and colors"
-msgstr "Eigene Schriftarten und Farben verwenden"
-
-msgid "Show the sender's fonts and colors"
-msgstr "Schriftarten und Farben des Absenders anzeigen"
-
-msgid "Show remote content"
-msgstr "Externe Inhalte anzeigen"
-
-msgid "Block remote content"
-msgstr "Externe Inhalte blockieren"
 
 msgid "Click to open this message"
 msgstr "Klicken zum Öffnen der Nachricht"
@@ -6154,15 +6111,6 @@ msgstr "Leseansicht ein"
 msgid "Reader View off"
 msgstr "Leseansicht aus"
 
-msgid "Hidden behind a toggle"
-msgstr "Hinter einem Schalter verborgen"
-
-msgid "Shown while hovering"
-msgstr "Beim Darüberfahren sichtbar"
-
-msgid "Always visible"
-msgstr "Immer sichtbar"
-
 msgid "Ask each time"
 msgstr "Jedes Mal fragen"
 
@@ -6390,6 +6338,9 @@ msgstr "Weitergeleitete Nachricht"
 
 msgid "Each opens in a window for you to check and send."
 msgstr ""
+
+msgid "Mark as read or unread"
+msgstr "Als gelesen oder ungelesen markieren"
 
 #, fuzzy
 msgid "Add and remove stars"
@@ -6660,15 +6611,6 @@ msgstr "Nachrichten mit Tags einfärben"
 msgid "In the color of its first tag."
 msgstr "Färbung anhand des ersten Tags"
 
-msgid "Actions palette in the message list"
-msgstr "Aktionspalette in der Nachrichtenliste"
-
-msgid "The ⋯ row under each message."
-msgstr "Die »⋯« Zeile unter jeder Nachricht"
-
-msgid "Open the actions palette on hover"
-msgstr "Aktionspalette beim Darüberfahren öffnen"
-
 msgid "Swipe actions"
 msgstr "Wischaktionen"
 
@@ -6688,12 +6630,6 @@ msgid "Raise it if swipes stop short. Mouse drags are unaffected."
 msgstr ""
 "Den Wert erhöhen, falls Wischgesten vorzeitig abbrechen. Mauszug-Aktionen "
 "bleiben unbeeinflusst."
-
-msgid "Actions palette timeout"
-msgstr "Zeitlimit der Aktionspalette"
-
-msgid "Seconds it stays open after the pointer leaves."
-msgstr "Zeitverzögerung in Sekunden nach dem Verlassen mit dem Zeiger."
 
 msgid "Columns"
 msgstr "Spalten"
@@ -7116,6 +7052,9 @@ msgstr "Einfügen"
 msgid "Show or hide folders"
 msgstr "Ordner anzeigen oder ausblenden"
 
+msgid "Long-press to expand or collapse"
+msgstr "Lange drücken, um aus- oder einzuklappen"
+
 msgid "Show or hide labels"
 msgstr "Beschriftungen anzeigen oder ausblenden"
 
@@ -7220,9 +7159,6 @@ msgstr "Jeden Smart Folder anzeigen"
 
 msgid "Show each address book"
 msgstr "Jedes Adressbuch anzeigen"
-
-msgid "Long-press to expand or collapse"
-msgstr "Lange drücken, um aus- oder einzuklappen"
 
 msgid "Show or hide tags"
 msgstr "Tags ein- oder ausblenden"
@@ -7630,9 +7566,8 @@ msgstr "Zweistufiger Verifizierungscode (sofern verwendet)"
 msgid "Enter the account's mailbox password."
 msgstr "Passwort eingeben"
 
-#, fuzzy
 msgid "The mailbox password was not accepted."
-msgstr "Zweistufiger Verifizierungscode (sofern verwendet)"
+msgstr ""
 
 msgid "The server wants to confirm that a person is signing in."
 msgstr ""
@@ -7682,8 +7617,7 @@ msgstr "Kein Ordner für die Installation vorhanden"
 #, fuzzy
 msgid "Tuta's own folders can't be changed."
 msgstr ""
-"Microsoft 365 archiviert eine eigene Kopie in Gesendete Elemente; dies kann "
-"nicht geändert werden."
+"Änderung von Ordnern erst nach Herstellung einer Kontoverbindung möglich."
 
 msgid "The account has reached Tuta's limit for that."
 msgstr ""
@@ -7711,7 +7645,7 @@ msgstr "Der Dienst hat den Schlüssel nicht akzeptiert."
 
 #, fuzzy
 msgid "The draft is no longer on the server."
-msgstr "Dieser Ordner ist nicht auf dem Server vorhanden"
+msgstr "Die Nachricht ist zu lang für den Server."
 
 #, fuzzy
 msgid "The server did not store the draft."
@@ -7729,7 +7663,7 @@ msgstr ""
 
 #, fuzzy
 msgid "The message could not be read, so it was not stored."
-msgstr "Die Dateien konnten nicht gelöscht werden."
+msgstr "Eine Nachricht konnte nicht in {account} verschoben werden: {error}"
 
 #, fuzzy
 msgid "The message is too large for Tuta to take in."
@@ -7950,11 +7884,8 @@ msgstr ""
 
 #. A merge's message the server would not take: retrying will
 #. not help unless it is edited, or the server's limit resets.
-#, fuzzy
 msgid "Send failed: {e}. The message is in the Outbox."
-msgstr ""
-"Senden fehlgeschlagen: {e}. Die Nachricht liegt im Postausgang und wird "
-"gesendet, sobald die Verbindung wiederhergestellt ist."
+msgstr "Senden fehlgeschlagen: {e}. Die Nachricht liegt im Postausgang."
 
 msgid ""
 "Send failed: {e}. The message is in the Outbox and will be sent when the "
@@ -7987,9 +7918,8 @@ msgstr ""
 "POP3 kann Nachrichten auf dem Server nicht ändern. Daher wurde der Anhang "
 "nicht entfernt"
 
-#, fuzzy
 msgid "Proton accounts can't save drafts on the server from Hylki yet"
-msgstr "Dieses Konto kann keine Ordner auf der obersten Ebene enthalten."
+msgstr ""
 
 msgid ""
 "Folders of a Proton account can't be created, renamed or deleted from Hylki "
@@ -8744,18 +8674,18 @@ msgstr "Trennlinie über der zitierten Nachricht"
 msgid "Restore Default"
 msgstr "Standardeinstellungen wiederherstellen"
 
-#, fuzzy
 msgid "Attachment Reminder"
-msgstr "Anhangbereich"
+msgstr "Erinnerung an Anhänge"
 
 msgid ""
 "Send asks first when the message mentions one of these words and nothing is "
 "attached."
 msgstr ""
+"Vor dem Senden nachfragen, wenn die Nachricht eines dieser Wörter enthält "
+"und kein Anhang beigefügt ist."
 
-#, fuzzy
 msgid "Words, separated by commas"
-msgstr "E-Mail-Adressen, kommagetrennt"
+msgstr "Begriffe, getrennt durch Kommas"
 
 msgid "Spelling"
 msgstr "Rechtschreibung"
@@ -8774,6 +8704,9 @@ msgstr "Hinzugefügte Wörter"
 
 msgid "Changes apply after a restart."
 msgstr "Änderungen werden nach einem Neustart wirksam."
+
+msgid "Mark as read"
+msgstr "Als gelesen markieren"
 
 msgid "Conversations mark each message as it comes into view."
 msgstr ""
@@ -8834,18 +8767,6 @@ msgid "The system's monospace font unless another is chosen."
 msgstr ""
 "Die Monospace-Schriftart des Systems, es sei denn, es wird eine andere "
 "gewählt."
-
-msgid "Message card actions palette"
-msgstr "Aktionspalette für Nachrichtenkarten"
-
-msgid "Message card actions palette timeout"
-msgstr "Zeitlimit der Aktionspalette für Nachrichtenkarten"
-
-msgid "Message card actions palette as a menu"
-msgstr "Nachrichtenkarten-Aktionspalette als Menü"
-
-msgid "The ⋯ opens the right-click menu instead."
-msgstr "Das Symbol »⋯« öffnet stattdessen das Kontextmenü."
 
 msgid "Single messages as cards"
 msgstr "Einzelne Nachrichten als Karten"
@@ -9204,14 +9125,86 @@ msgstr "Der gemeinsame Posteingang im hellen Modus."
 msgid "Hyprlab"
 msgstr "Hyprlab"
 
-#, fuzzy
-#~ msgid "✗ Tuta: {e}"
-#~ msgstr "✗ SMTP: {e}"
+#~ msgid "Not spam"
+#~ msgstr "Kein Spam"
 
-#, fuzzy
-#~ msgid "This account can't take in mail from another account."
-#~ msgstr ""
-#~ "Ein POP3-Konto kann keine E-Mails von einem anderen Konto übernehmen"
+#~ msgid "Add sender to Contacts"
+#~ msgstr "Absender zu Kontakten hinzufügen"
+
+#~ msgid "Mark as unread"
+#~ msgstr "Als ungelesen markieren"
+
+#~ msgid "Remove star"
+#~ msgstr "Stern entfernen"
+
+#~ msgid "Star this message"
+#~ msgstr "Nachricht mit Stern markieren"
+
+#~ msgid "View source"
+#~ msgstr "Quelltext anzeigen"
+
+#~ msgid "Translate this message"
+#~ msgstr "Diese Nachricht übersetzen"
+
+#~ msgid "Reply to this message"
+#~ msgstr "Antwort auf diese Nachricht"
+
+#~ msgid "Reply to everyone on this message"
+#~ msgstr "Allen antworten auf diese Nachricht"
+
+#~ msgid "Forward this message"
+#~ msgstr "Nachricht weiterleiten"
+
+#~ msgid "Move this message to a folder"
+#~ msgstr "Nachricht in einen Ordner verschieben"
+
+#~ msgid "Archive this message"
+#~ msgstr "Nachricht archivieren"
+
+#~ msgid "Delete this message"
+#~ msgstr "Nachricht löschen"
+
+#~ msgid "Show remote content"
+#~ msgstr "Externe Inhalte anzeigen"
+
+#~ msgid "Block remote content"
+#~ msgstr "Externe Inhalte blockieren"
+
+#~ msgid "Hidden behind a toggle"
+#~ msgstr "Hinter einem Schalter verborgen"
+
+#~ msgid "Shown while hovering"
+#~ msgstr "Beim Darüberfahren sichtbar"
+
+#~ msgid "Always visible"
+#~ msgstr "Immer sichtbar"
+
+#~ msgid "Actions palette in the message list"
+#~ msgstr "Aktionspalette in der Nachrichtenliste"
+
+#~ msgid "The ⋯ row under each message."
+#~ msgstr "Die »⋯« Zeile unter jeder Nachricht"
+
+#~ msgid "Open the actions palette on hover"
+#~ msgstr "Aktionspalette beim Darüberfahren öffnen"
+
+#~ msgid "Actions palette timeout"
+#~ msgstr "Zeitlimit der Aktionspalette"
+
+#~ msgid "Seconds it stays open after the pointer leaves."
+#~ msgstr "Zeitverzögerung in Sekunden nach dem Verlassen mit dem Zeiger."
+
+#~ msgid "Message card actions palette"
+#~ msgstr "Aktionspalette für Nachrichtenkarten"
+
+#~ msgid "Message card actions palette timeout"
+#~ msgstr "Zeitlimit der Aktionspalette für Nachrichtenkarten"
+
+#~ msgid "Message card actions palette as a menu"
+#~ msgstr "Nachrichtenkarten-Aktionspalette als Menü"
+
+#~ msgid "The ⋯ opens the right-click menu instead."
+#~ msgstr "Das Symbol »⋯« öffnet stattdessen das Kontextmenü."
 
 #~ msgid "Received"
 #~ msgstr "Empfangen"

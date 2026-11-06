@@ -385,9 +385,11 @@ the right-click menu of the account's header or its Folders heading, forgets
 what was dragged. The item is there only once something has been.
 
 The chevrons open and close the items in the sidebar. Clicking a folder
-opens it and leaves its sub-folders as they were. Clicking the name of the
-Folders or Tags heading of an account does nothing; the chevron beside it
-opens or closes the section. Clicking Inboxes, Starred, Sent, Drafts,
+opens it and leaves its sub-folders as they were, and double-clicking it
+opens or closes them as its chevron does. The Folders, Labels and Tags
+headings of an account work the same way: a chevron or a double click opens or
+closes the section, and a single click elsewhere on it does nothing.
+Clicking Inboxes, Starred, Sent, Drafts,
 Archive, Junk or Trash in the unified section, or Favorites, Filters, Tags
 or Contacts, opens the combined list without showing each account's folder under it, and
 double-clicking it opens or closes that list as its chevron does. An
@@ -396,7 +398,10 @@ header, opens or closes its folders, and a single click elsewhere on it
 does nothing. **Settings → Sidebar → Fold accounts with one click** brings
 back the single click anywhere on the header. In the icon rail, which has
 no chevrons, a click on a section's icon opens or closes it, and a long
-press or a double click opens or closes the unified rows.
+press or a double click opens or closes the unified rows. A click on an
+account's avatar opens that account's Inbox, and a long press or a double
+click opens or closes its folders; with **Fold accounts with one click** on,
+a click opens or closes them instead.
 
 **Settings → Sidebar → Unified** chooses the unified section's rows.
 Inboxes, Starred, Sent, Drafts, Archive and Snoozed are on until switched
@@ -2079,6 +2084,10 @@ Printing shows every message in full.
 
 ### The reader's toolbar
 
+The ⋯ at the end of a message's header opens the same menu as a right click on
+the message. It acts on that message, and has **Show Sender's Fonts and Colors**
+while **Settings → Reading → Use my own font** or **Use my own colors** is on.
+
 The buttons above the message are in two groups. The left group, up to seven
 buttons, stays on the bar at every width: Reply, Reply All, Forward, Star,
 Archive, Spam and Delete by default. The right group folds into a ⋯ menu:
@@ -2229,9 +2238,9 @@ their own. **Single line** puts them on one line in columns: the sender's
 circle and name, the subject with the text dimmed after it, then tags, a
 paperclip, the conversation's size and a short date. **Automatic** uses one
 line while the list pane is dragged wider than about 600 pixels and cards
-when it is narrower. On one line the actions palette is not shown and a
-row does not swipe, as sideways is how the list scrolls to its columns;
-the right-click menu and keyboard shortcuts do the same things.
+when it is narrower. On one line a row does not swipe, as sideways is how
+the list scrolls to its columns; the right-click menu and keyboard shortcuts
+do the same things.
 
 **Settings → Message List → Columns** chooses what a single line shows and
 in what order: drag a column between **Shown** and **Not shown**, or along
@@ -2366,9 +2375,12 @@ word, such as `10:30` or `re:`, is searched for as written.
 
 The sort and filter button in the list's header opens a popover of three
 columns. **Sort by** orders the list by date, newest or oldest first, by
-sender or subject, or puts unread or starred mail first, and the order
-chosen there or by a column heading is kept from one launch to the next.
-**Show only** holds the quick filters:
+sender or subject, or puts unread or starred mail first. The order chosen
+there or by a column heading is kept for the open folder, from one launch to
+the next, and each folder, unified row, tag and smart folder has its own.
+One where none was chosen uses the default, newest first. **Use for All
+Folders** makes the open folder's order the default and drops the orders the
+others kept. **Show only** holds the quick filters:
 
 - **Unread** and **Starred**
 - **Has Attachments**

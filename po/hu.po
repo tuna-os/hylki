@@ -293,6 +293,14 @@ msgstr "Keresés az üzenetben"
 msgid "Collapse All Messages"
 msgstr "Olvasói nézetre váltás"
 
+#, fuzzy
+msgid "Back to My Fonts and Colors"
+msgstr "Vissza a saját betűtípusaimhoz és színeimhez"
+
+#, fuzzy
+msgid "Show Sender's Fonts and Colors"
+msgstr "Feladó betűtípusainak és színeinek megjelenítése"
+
 msgid "View Source"
 msgstr "Forrás megtekintése"
 
@@ -902,6 +910,10 @@ msgstr "lejár: {date}"
 
 msgid "Sort by"
 msgstr "Rendezés"
+
+#, fuzzy
+msgid "Use for All Folders"
+msgstr "Minden mappa"
 
 #, fuzzy
 msgid "Show only"
@@ -2700,9 +2712,8 @@ msgstr "Először adja meg az e-mail-címét és a jelszavát."
 msgid "Signing in…"
 msgstr "Bejelentkezés…"
 
-#, fuzzy
 msgid "✓ {provider}: signed in"
-msgstr "Nincs bejelentkezve"
+msgstr ""
 
 msgid "✗ {provider}: {e}"
 msgstr ""
@@ -3406,6 +3417,10 @@ msgstr "Típus (Z–A)"
 
 msgid "Previous"
 msgstr "Előző"
+
+#, fuzzy
+msgid "No preview available"
+msgstr "Nem érhető el a(z) {v1} mappa"
 
 msgid "Next"
 msgstr "Következő"
@@ -4254,7 +4269,7 @@ msgstr "Jelszó"
 
 #, fuzzy
 msgid "The account did not answer."
-msgstr "A könyvtár nem fogadta el a jelszót."
+msgstr "A fiókok elrejtése az oldalsávban"
 
 #, fuzzy
 msgid "Cannot merge a confidential message"
@@ -5428,21 +5443,6 @@ msgstr "Beszélgetés megjelenítése"
 msgid "Drag to resize, double-click for the usual width"
 msgstr ""
 
-msgid "Mark as read"
-msgstr "Megjelölés olvasottként"
-
-msgid "Not spam"
-msgstr "Nem levélszemét"
-
-msgid "Add sender to Contacts"
-msgstr "Feladó hozzáadása a névjegyekhez"
-
-msgid "Mark as unread"
-msgstr "Megjelölés olvasatlanként"
-
-msgid "Remove star"
-msgstr "Csillag eltávolítása"
-
 msgid "High importance"
 msgstr ""
 
@@ -5590,49 +5590,6 @@ msgstr "Címzettek elrejtése"
 
 msgid "Show recipients"
 msgstr "Címzettek megjelenítése"
-
-msgid "Mark as read or unread"
-msgstr "Megjelölés olvasottként vagy olvasatlanként"
-
-msgid "Star this message"
-msgstr "Üzenet csillagozása"
-
-msgid "View source"
-msgstr "Forrás megtekintése"
-
-#, fuzzy
-msgid "Translate this message"
-msgstr "Üzenet törlése"
-
-msgid "Reply to this message"
-msgstr "Válasz erre az üzenetre"
-
-msgid "Reply to everyone on this message"
-msgstr "Válasz az üzenet minden címzettjének"
-
-msgid "Forward this message"
-msgstr "Üzenet továbbítása"
-
-msgid "Move this message to a folder"
-msgstr "Üzenet mappába helyezése"
-
-msgid "Archive this message"
-msgstr "Üzenet archiválása"
-
-msgid "Delete this message"
-msgstr "Üzenet törlése"
-
-msgid "Back to my fonts and colors"
-msgstr "Vissza a saját betűtípusaimhoz és színeimhez"
-
-msgid "Show the sender's fonts and colors"
-msgstr "Feladó betűtípusainak és színeinek megjelenítése"
-
-msgid "Show remote content"
-msgstr "Távoli tartalom megjelenítése"
-
-msgid "Block remote content"
-msgstr "Távoli tartalom letiltása"
 
 #, fuzzy
 msgid "Click to open this message"
@@ -6414,15 +6371,6 @@ msgstr "Olvasói nézet Be"
 msgid "Reader View off"
 msgstr "Olvasói nézet Ki"
 
-msgid "Hidden behind a toggle"
-msgstr "Egy kapcsoló mögött rejtve"
-
-msgid "Shown while hovering"
-msgstr "Megjelenítés rámutatáskor"
-
-msgid "Always visible"
-msgstr "Mindig látható"
-
 msgid "Ask each time"
 msgstr "Mindig kérdezz"
 
@@ -6664,6 +6612,9 @@ msgstr "Üzenet továbbítása"
 
 msgid "Each opens in a window for you to check and send."
 msgstr ""
+
+msgid "Mark as read or unread"
+msgstr "Megjelölés olvasottként vagy olvasatlanként"
 
 #, fuzzy
 msgid "Add and remove stars"
@@ -6936,16 +6887,6 @@ msgstr "{n} db üzenet címkézve"
 msgid "In the color of its first tag."
 msgstr ""
 
-msgid "Actions palette in the message list"
-msgstr "Műveletpaletta az üzenetlistában"
-
-#, fuzzy
-msgid "The ⋯ row under each message."
-msgstr "Mellékletek az egyes üzenetekhez"
-
-msgid "Open the actions palette on hover"
-msgstr "Műveletpaletta megnyitása, amikor a kurzor fölé van helyezve"
-
 msgid "Swipe actions"
 msgstr "Csúsztatási műveletek"
 
@@ -6961,15 +6902,6 @@ msgstr "Az érintőpad csúsztatási érzékenysége"
 
 msgid "Raise it if swipes stop short. Mouse drags are unaffected."
 msgstr ""
-
-msgid "Actions palette timeout"
-msgstr "A műveletpaletta időtúllépése"
-
-#, fuzzy
-msgid "Seconds it stays open after the pointer leaves."
-msgstr ""
-"Hány másodpercig marad nyitva a kártya műveletpalettája, miután a kurzor "
-"elhagyja azt."
 
 msgid "Columns"
 msgstr ""
@@ -7389,6 +7321,9 @@ msgstr "Beszúrás"
 msgid "Show or hide folders"
 msgstr "Mappák megjelenítése vagy elrejtése"
 
+msgid "Long-press to expand or collapse"
+msgstr "Hosszú gombnyomással kibontható vagy összecsukható"
+
 #, fuzzy
 msgid "Show or hide labels"
 msgstr "Címkék megjelenítése vagy elrejtése"
@@ -7499,9 +7434,6 @@ msgstr "Minden mappa megjelenítése"
 #, fuzzy
 msgid "Show each address book"
 msgstr "El akarod menteni a könyvtárat?"
-
-msgid "Long-press to expand or collapse"
-msgstr "Hosszú gombnyomással kibontható vagy összecsukható"
 
 msgid "Show or hide tags"
 msgstr "Címkék megjelenítése vagy elrejtése"
@@ -7904,9 +7836,8 @@ msgstr "Kétlépcsős (2FA) azonosítási kód, ha a fiók használ ilyet"
 msgid "Enter the account's mailbox password."
 msgstr "Védelem jelszóval"
 
-#, fuzzy
 msgid "The mailbox password was not accepted."
-msgstr "Kétlépcsős (2FA) azonosítási kód, ha a fiók használ ilyet"
+msgstr ""
 
 msgid "The server wants to confirm that a person is signing in."
 msgstr ""
@@ -7952,11 +7883,8 @@ msgstr "A könyvtár nem fogadta el a jelszót."
 msgid "There is already a folder by that name there."
 msgstr ""
 
-#, fuzzy
 msgid "Tuta's own folders can't be changed."
 msgstr ""
-"A Microsoft 365 saját másolatot ment az „Elküldött elemek” mappába; ez nem "
-"módosítható."
 
 msgid "The account has reached Tuta's limit for that."
 msgstr ""
@@ -7984,7 +7912,7 @@ msgstr "A könyvtár nem fogadta el a jelszót."
 
 #, fuzzy
 msgid "The draft is no longer on the server."
-msgstr "A mappa nincs a kiszolgálón"
+msgstr "Ez az üzenet nem tartalmaz megnyitható naptárfájlt."
 
 #, fuzzy
 msgid "The server did not store the draft."
@@ -8002,7 +7930,7 @@ msgstr ""
 
 #, fuzzy
 msgid "The message could not be read, so it was not stored."
-msgstr "A fájl nem megnyitható"
+msgstr "Egy üzenet nem tudott átkerülni a {account} fiókba: {error}"
 
 #, fuzzy
 msgid "The message is too large for Tuta to take in."
@@ -9071,6 +8999,9 @@ msgstr "Hozzáadott szavak"
 msgid "Changes apply after a restart."
 msgstr ""
 
+msgid "Mark as read"
+msgstr "Megjelölés olvasottként"
+
 #, fuzzy
 msgid "Conversations mark each message as it comes into view."
 msgstr ""
@@ -9127,18 +9058,6 @@ msgstr "Fix szélességű betűtípus"
 msgid "The system's monospace font unless another is chosen."
 msgstr ""
 "A rendszer fix szélességű betűtípusa, amennyiben nincs másik választva."
-
-msgid "Message card actions palette"
-msgstr "Üzenetkártya-műveletek palettája"
-
-msgid "Message card actions palette timeout"
-msgstr "Az üzenetkártya műveletpalettájának időtúllépése"
-
-msgid "Message card actions palette as a menu"
-msgstr "Az üzenetkártya műveleteinek palettája menüként"
-
-msgid "The ⋯ opens the right-click menu instead."
-msgstr ""
 
 msgid "Single messages as cards"
 msgstr "Önálló üzenetek kártyaként"
@@ -9500,13 +9419,88 @@ msgstr "Az egységes beérkező levelek mappa világos üzemmódban"
 msgid "Hyprlab"
 msgstr "Hyprlab"
 
-#, fuzzy
-#~ msgid "✗ Tuta: {e}"
-#~ msgstr "✗ SMTP: {e}"
+#~ msgid "Not spam"
+#~ msgstr "Nem levélszemét"
+
+#~ msgid "Add sender to Contacts"
+#~ msgstr "Feladó hozzáadása a névjegyekhez"
+
+#~ msgid "Mark as unread"
+#~ msgstr "Megjelölés olvasatlanként"
+
+#~ msgid "Remove star"
+#~ msgstr "Csillag eltávolítása"
+
+#~ msgid "Star this message"
+#~ msgstr "Üzenet csillagozása"
+
+#~ msgid "View source"
+#~ msgstr "Forrás megtekintése"
 
 #, fuzzy
-#~ msgid "This account can't take in mail from another account."
-#~ msgstr "Egy POP3-fiók nem tud leveleket fogadni egy másik fióktól"
+#~ msgid "Translate this message"
+#~ msgstr "Üzenet törlése"
+
+#~ msgid "Reply to this message"
+#~ msgstr "Válasz erre az üzenetre"
+
+#~ msgid "Reply to everyone on this message"
+#~ msgstr "Válasz az üzenet minden címzettjének"
+
+#~ msgid "Forward this message"
+#~ msgstr "Üzenet továbbítása"
+
+#~ msgid "Move this message to a folder"
+#~ msgstr "Üzenet mappába helyezése"
+
+#~ msgid "Archive this message"
+#~ msgstr "Üzenet archiválása"
+
+#~ msgid "Delete this message"
+#~ msgstr "Üzenet törlése"
+
+#~ msgid "Show remote content"
+#~ msgstr "Távoli tartalom megjelenítése"
+
+#~ msgid "Block remote content"
+#~ msgstr "Távoli tartalom letiltása"
+
+#~ msgid "Hidden behind a toggle"
+#~ msgstr "Egy kapcsoló mögött rejtve"
+
+#~ msgid "Shown while hovering"
+#~ msgstr "Megjelenítés rámutatáskor"
+
+#~ msgid "Always visible"
+#~ msgstr "Mindig látható"
+
+#~ msgid "Actions palette in the message list"
+#~ msgstr "Műveletpaletta az üzenetlistában"
+
+#, fuzzy
+#~ msgid "The ⋯ row under each message."
+#~ msgstr "Mellékletek az egyes üzenetekhez"
+
+#~ msgid "Open the actions palette on hover"
+#~ msgstr "Műveletpaletta megnyitása, amikor a kurzor fölé van helyezve"
+
+#~ msgid "Actions palette timeout"
+#~ msgstr "A műveletpaletta időtúllépése"
+
+#, fuzzy
+#~ msgid "Seconds it stays open after the pointer leaves."
+#~ msgstr ""
+#~ "Hány másodpercig marad nyitva a kártya műveletpalettája, miután a kurzor "
+#~ "elhagyja azt."
+
+#~ msgid "Message card actions palette"
+#~ msgstr "Üzenetkártya-műveletek palettája"
+
+#~ msgid "Message card actions palette timeout"
+#~ msgstr "Az üzenetkártya műveletpalettájának időtúllépése"
+
+#~ msgid "Message card actions palette as a menu"
+#~ msgstr "Az üzenetkártya műveleteinek palettája menüként"
 
 #~ msgid "Could not rename folder: unknown folder"
 #~ msgstr "A mappa nem nevezhető át: ismeretlen mappa"

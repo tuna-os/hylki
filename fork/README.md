@@ -76,18 +76,20 @@ sweep.
    with the app's build dependencies.
 4. If all of that passed, it pushes.
 
-If any step fails, nothing is pushed. One issue labelled `upstream-sync` is
-opened, or updated if one is already open, with the step that failed and any
-conflicting files. The next clean run closes it.
+If any step fails, nothing is pushed and the run fails; its summary names the
+step that failed and any conflicting files. Issues are off on tuna-os/hylki,
+so the failed run is the alert. If issues are turned on, one issue labelled
+`upstream-sync` is also opened, or updated if one is already open, and the next
+clean run closes it.
 
 `GITHUB_TOKEN` may not push a commit that changes `.github/workflows`. When
-upstream changes its workflows, the push fails and the issue says so. Merge
+upstream changes its workflows, the push fails and the run says so. Merge
 that one by hand, or add an `UPSTREAM_SYNC_TOKEN` secret holding a token with
 the `workflow` scope; the job pushes with it when it is set.
 
 ## Building
 
-Releases are tagged `v<upstream-version>-tuna<N>`, for example `v1.47.0-tuna1`.
+Releases are tagged `v<upstream-version>-tuna<N>`, for example `v1.47.1-tuna1`.
 A tag, or a manual run of `.github/workflows/fork-release.yml` given such a
 tag, builds `org.tunaos.Hylki-<version>.flatpak` (x86_64) and
 `org.tunaos.Hylki-<version>-aarch64.flatpak` and attaches both to the GitHub

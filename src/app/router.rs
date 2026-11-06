@@ -178,7 +178,6 @@ impl AppModel {
             | AppMsg::PurgeMessages(..)
             | AppMsg::CardAction { .. }
             | AppMsg::ToggleReadCurrent
-            | AppMsg::CardContact(..)
             | AppMsg::RowAction { .. }
             | AppMsg::Bulk { .. }
             | AppMsg::BulkComplete
@@ -249,7 +248,8 @@ impl AppModel {
             | AppMsg::ListPaneWidth(..)
             | AppMsg::ListCount(..)
             | AppMsg::ListColumnWidths(..)
-            | AppMsg::ListSortChanged(..)) => self.on_list_header(msg, sender),
+            | AppMsg::ListSortChanged(..)
+            | AppMsg::ListSortForAll) => self.on_list_header(msg, sender),
             msg @ AppMsg::OwnGravatarFetched { .. } => self.on_identity(msg),
             msg @ (AppMsg::SetReaderActionsCollapsed(..)
             | AppMsg::SetReaderCompact(..)
@@ -496,7 +496,6 @@ impl AppModel {
             | PrefOutput::SetThreadExpansion(..)
             | PrefOutput::SetThreadRowNewest(..)
             | PrefOutput::SetConfirmThreadDelete(..)
-            | PrefOutput::SetCardActionsMode { .. }
             | PrefOutput::SetThreadsExpanded(..)
             | PrefOutput::SetThreadNewestFirst(..)
             | PrefOutput::SetFoldMessages(..)
@@ -508,8 +507,6 @@ impl AppModel {
             | PrefOutput::SetAccountChip(..)
             | PrefOutput::SetReaderFindBottom(..)
             | PrefOutput::SetSingleMessageCard(..)
-            | PrefOutput::SetCardPaletteCollapse(..)
-            | PrefOutput::SetCardPaletteMenu(..)
             | PrefOutput::SetMessageTheme(..)
             | PrefOutput::SetOverrideFonts(..)
             | PrefOutput::SetReaderFont(..)
@@ -530,9 +527,6 @@ impl AppModel {
             | PrefOutput::SetPreviewLines(..)
             | PrefOutput::SetAttachmentsRow(..)
             | PrefOutput::ResetColumnWidths
-            | PrefOutput::SetPaletteCollapse(..)
-            | PrefOutput::SetListPalette(..)
-            | PrefOutput::SetListPaletteHover(..)
             | PrefOutput::SetSwipeEnabled(..)
             | PrefOutput::SetSwipeReversed(..)
             | PrefOutput::SetSwipeSensitivity(..)) => self.on_prefs_list_pref(pref, sender),

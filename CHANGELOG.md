@@ -39,6 +39,72 @@
   and security keys are not supported. The **Proton Mail (Bridge)** provider
   is unchanged. See [Proton Mail](docs/DOCUMENTATION.md#proton-mail).
 
+- **Changed: the message list can be dragged narrower**, down to 290 pixels from
+  348. The selection bar's buttons draw tighter below 344 pixels so they all
+  still fit.
+
+- **Fixed: rows with avatars switched off held their text above the middle of
+  the highlight.** It is now centered, in and out of Focus Mode.
+
+- **Removed: the actions palettes on message rows and message cards.** The ⋯ on
+  a card opens the same menu as a right click, and a row is acted on with its
+  right-click menu, swipes and keyboard shortcuts. Rows no longer carry a ⋯, and
+  are shorter where they kept room for it. Settings → Message List and Reading
+  lose the palette switches and timeouts. Show Sender's Fonts and Colors moved
+  from the palette to the card's menu.
+
+- **Changed: a click on an account's avatar in the icon rail opens its Inbox**
+  (#594, suggested by Alp Sahin). A long press or a double click now opens or
+  closes its folders. The avatar is lit while a folder of that account is open
+  and folded away. With Settings → Sidebar → Fold accounts with one click on, a
+  click opens or closes the folders as before.
+
+- **Fixed: a theme picked in Settings could have no effect** (#593, by Alp Sahin).
+  A `~/.config/gtk-4.0/gtk.css` that sets GTK's named colors, as theme generators
+  do, overrode it. A picked theme now wins. With no theme picked, that file still
+  colors the app.
+
+- **Fixed: text on the accent color could be hard to read** (#593, by Alp Sahin).
+  New Message, a selected message and a selected contact used white whatever the
+  accent, so a pale accent from a desktop's GTK colors left white on pale. They
+  now use the accent's foreground color. GNOME's accents still get white. The
+  dark palettes of Forest, Tidal and Earth now get their dark foreground on the
+  accent, and Rose's its pale pink.
+
+- **Translations:** German updated (PR #578 by Samuel Edlmeier), with 2375 of
+  2458 strings translated.
+
+- **Fixed: sending from a Microsoft account could report that a message could
+  not be loaded** (#538, by James Reilly). The message had gone out. Microsoft
+  keeps a sent message in Drafts until it moves to Sent, and the app could list
+  Drafts in that time, then ask for the message by an ID that no longer existed.
+  Drafts is now updated from the cache after a send.
+
+- **Fixed: `w` and `b` left a message card under the bar above it** (#587, by
+  James Reilly). The card's top border and selection outline were cut off. The
+  card now stops 14 px below the bar, as it does when focused for a reply.
+
+- **Added: each folder keeps its own sort** (#574, suggested by Bohne13). The
+  order chosen under **Sort by**, or by a column heading, now belongs to the
+  folder, unified row, tag or smart folder it was chosen in, and a renamed
+  folder keeps it. The order saved by an earlier version stays as the default
+  for the folders with none of their own. **Use for All Folders**, under the
+  orders, makes the open folder's order the default and drops the others.
+
+- **Added: a double click opens or closes a folder's sub-folders and the
+  Folders, Labels and Tags headings** (#583), as it does on a unified row or an
+  account's header. A single click on a folder still opens it and leaves its
+  sub-folders as they were. A heading now lights up under the pointer as the
+  rows around it do.
+
+- **Fixed: row titles broke letter by letter in New Event and New Task** (#564).
+  The dialog was too narrow for a title beside a date and a time, in a long
+  translation or a large font. It is now wider.
+
+- **Fixed: a column's resize line stood on its heading's first letter** (#579).
+  The handle now sits in the gap between two columns, and beside the words of
+  Date and Due, which are set to the right of their columns.
+
 - **Fixed: a long conversation could use all the memory** (#581, by Gonzalo
   Vasco López). A folded message card still loaded its message in the
   background, and one conversation of 83 quoted replies took the app past 14 GB.
@@ -61,6 +127,15 @@
   erasing mail for good, or reading encrypted mail, which stays out of reach
   even after you have opened it. See
   [AI agents](docs/DOCUMENTATION.md#ai-agents).
+
+## 1.47.1 — 2026-11-05
+
+A patch for #582: a PDF with a password no longer freezes the app.
+
+- **Fixed: a PDF with a password froze the app** (#582). Opening one, or any
+  other PDF that cannot be read, kept the app busy until it was killed. The
+  preview now says **No preview available**, and **Open** hands the file to
+  another app.
 
 ## 1.47.0 — 2026-11-04
 

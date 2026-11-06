@@ -292,6 +292,14 @@ msgstr "Znajdź w wiadomości"
 msgid "Collapse All Messages"
 msgstr "Zwiń do panelu czytania"
 
+#, fuzzy
+msgid "Back to My Fonts and Colors"
+msgstr "Przywróć własne czcionki i kolory"
+
+#, fuzzy
+msgid "Show Sender's Fonts and Colors"
+msgstr "Wyświetl czcionki i kolory nadawcy"
+
 msgid "View Source"
 msgstr "Wyświetl źródło"
 
@@ -927,6 +935,10 @@ msgstr "wygasa {date}"
 
 msgid "Sort by"
 msgstr "Sortowanie według"
+
+#, fuzzy
+msgid "Use for All Folders"
+msgstr "Wszystkie katalogi"
 
 #, fuzzy
 msgid "Show only"
@@ -2745,9 +2757,8 @@ msgstr "Najpierw wprowadź adres e-mail i hasło."
 msgid "Signing in…"
 msgstr "Logowanie…"
 
-#, fuzzy
 msgid "✓ {provider}: signed in"
-msgstr "Nie zalogowano"
+msgstr ""
 
 msgid "✗ {provider}: {e}"
 msgstr ""
@@ -3457,6 +3468,10 @@ msgstr "Typ (Z–A)"
 
 msgid "Previous"
 msgstr "Poprzedni"
+
+#, fuzzy
+msgid "No preview available"
+msgstr "Brak katalogu {v1}"
 
 msgid "Next"
 msgstr "Następny"
@@ -4310,7 +4325,7 @@ msgstr "Hasło"
 
 #, fuzzy
 msgid "The account did not answer."
-msgstr "Nie udało się utworzyć klucza za pomocą programu gpg."
+msgstr "Ukrywanie kont w panelu bocznym"
 
 #, fuzzy
 msgid "Cannot merge a confidential message"
@@ -5501,21 +5516,6 @@ msgstr "Wyświetl rozmowę"
 msgid "Drag to resize, double-click for the usual width"
 msgstr ""
 
-msgid "Mark as read"
-msgstr "Oznacz jako przeczytane"
-
-msgid "Not spam"
-msgstr "To nie jest spam"
-
-msgid "Add sender to Contacts"
-msgstr "Dodaj nadawcę do kontaktów"
-
-msgid "Mark as unread"
-msgstr "Oznacz jako nieprzeczytane"
-
-msgid "Remove star"
-msgstr "Usuń gwiazdkę"
-
 msgid "High importance"
 msgstr ""
 
@@ -5665,50 +5665,6 @@ msgstr "Ukryj odbiorców"
 
 msgid "Show recipients"
 msgstr "Wyświetl odbiorców"
-
-msgid "Mark as read or unread"
-msgstr "Oznacz jako przeczytane lub nieprzeczytane"
-
-#, fuzzy
-msgid "Star this message"
-msgstr "Modyfikuj tę wiadomość"
-
-msgid "View source"
-msgstr "Wyświetl źródło"
-
-#, fuzzy
-msgid "Translate this message"
-msgstr "Usuń tę wiadomość"
-
-msgid "Reply to this message"
-msgstr "Odpowiedz na tę wiadomość"
-
-msgid "Reply to everyone on this message"
-msgstr "Odpowiedz wszystkim adresatom tej wiadomości"
-
-msgid "Forward this message"
-msgstr "Przekaż dalej tę wiadomość"
-
-msgid "Move this message to a folder"
-msgstr "Przenieś tę wiadomość do katalogu"
-
-msgid "Archive this message"
-msgstr "Archiwizuj tę wiadomość"
-
-msgid "Delete this message"
-msgstr "Usuń tę wiadomość"
-
-msgid "Back to my fonts and colors"
-msgstr "Przywróć własne czcionki i kolory"
-
-msgid "Show the sender's fonts and colors"
-msgstr "Wyświetl czcionki i kolory nadawcy"
-
-msgid "Show remote content"
-msgstr "Wyświetl zdalne treści"
-
-msgid "Block remote content"
-msgstr "Blokuj zdalne treści"
 
 #, fuzzy
 msgid "Click to open this message"
@@ -6499,15 +6455,6 @@ msgstr "Widok czytania włączony"
 msgid "Reader View off"
 msgstr "Widok czytania wyłączony"
 
-msgid "Hidden behind a toggle"
-msgstr "Ukryta za przełącznikiem"
-
-msgid "Shown while hovering"
-msgstr "Wyświetlana po najechaniu kursorem"
-
-msgid "Always visible"
-msgstr "Zawsze widoczna"
-
 msgid "Ask each time"
 msgstr "Pytaj za każdym razem"
 
@@ -6750,6 +6697,9 @@ msgstr "Przekaż dalej tę wiadomość"
 
 msgid "Each opens in a window for you to check and send."
 msgstr ""
+
+msgid "Mark as read or unread"
+msgstr "Oznacz jako przeczytane lub nieprzeczytane"
 
 #, fuzzy
 msgid "Add and remove stars"
@@ -7019,16 +6969,6 @@ msgstr "Oznaczono etykietą {n} wiadomość"
 msgid "In the color of its first tag."
 msgstr ""
 
-msgid "Actions palette in the message list"
-msgstr "Paleta działań na liście wiadomości"
-
-#, fuzzy
-msgid "The ⋯ row under each message."
-msgstr "Załączniki przy każdej wiadomości"
-
-msgid "Open the actions palette on hover"
-msgstr "Otwieranie palety działań po najechaniu kursorem"
-
 msgid "Swipe actions"
 msgstr "Gesty przesuwania"
 
@@ -7044,15 +6984,6 @@ msgstr "Czułość przesuwania na gładziku"
 
 msgid "Raise it if swipes stop short. Mouse drags are unaffected."
 msgstr ""
-
-msgid "Actions palette timeout"
-msgstr "Czas wyświetlania palety działań"
-
-#, fuzzy
-msgid "Seconds it stays open after the pointer leaves."
-msgstr ""
-"Liczba sekund, przez które paleta działań karty pozostaje otwarta po "
-"odsunięciu z niej kursora."
 
 msgid "Columns"
 msgstr ""
@@ -7468,6 +7399,9 @@ msgstr "Wstaw"
 msgid "Show or hide folders"
 msgstr "Wyświetl lub ukryj katalogi"
 
+msgid "Long-press to expand or collapse"
+msgstr "Przytrzymaj, aby rozwinąć lub zwinąć"
+
 #, fuzzy
 msgid "Show or hide labels"
 msgstr "Wyświetl lub ukryj etykiety"
@@ -7578,9 +7512,6 @@ msgstr "Wyświetl poszczególne katalogi"
 #, fuzzy
 msgid "Show each address book"
 msgstr "Czy zapisać filtr?"
-
-msgid "Long-press to expand or collapse"
-msgstr "Przytrzymaj, aby rozwinąć lub zwinąć"
 
 msgid "Show or hide tags"
 msgstr "Wyświetl lub ukryj etykiety"
@@ -7979,9 +7910,8 @@ msgstr "Kod weryfikacji dwuetapowej, jeśli konto jej używa"
 msgid "Enter the account's mailbox password."
 msgstr "Ochrona hasłem"
 
-#, fuzzy
 msgid "The mailbox password was not accepted."
-msgstr "Kod weryfikacji dwuetapowej, jeśli konto jej używa"
+msgstr ""
 
 msgid "The server wants to confirm that a person is signing in."
 msgstr ""
@@ -8027,11 +7957,8 @@ msgstr "Nie udało się utworzyć klucza za pomocą programu gpg."
 msgid "There is already a folder by that name there."
 msgstr ""
 
-#, fuzzy
 msgid "Tuta's own folders can't be changed."
 msgstr ""
-"Usługa Microsoft 365 sama zapisuje kopię w katalogu „Elementy wysłane”; nie "
-"można tego zmienić."
 
 msgid "The account has reached Tuta's limit for that."
 msgstr ""
@@ -8059,7 +7986,7 @@ msgstr "Nie udało się utworzyć klucza za pomocą programu gpg."
 
 #, fuzzy
 msgid "The draft is no longer on the server."
-msgstr "Tego katalogu nie ma na serwerze"
+msgstr "Ta wiadomość nie zawiera pliku kalendarza do otwarcia."
 
 #, fuzzy
 msgid "The server did not store the draft."
@@ -8077,7 +8004,7 @@ msgstr ""
 
 #, fuzzy
 msgid "The message could not be read, so it was not stored."
-msgstr "Nie udało się otworzyć pliku"
+msgstr "Nie udało się przenieść jednej wiadomości na konto {account}: {error}"
 
 #, fuzzy
 msgid "The message is too large for Tuta to take in."
@@ -9151,6 +9078,9 @@ msgstr "Dodane słowa"
 msgid "Changes apply after a restart."
 msgstr ""
 
+msgid "Mark as read"
+msgstr "Oznacz jako przeczytane"
+
 #, fuzzy
 msgid "Conversations mark each message as it comes into view."
 msgstr ""
@@ -9206,18 +9136,6 @@ msgstr "Czcionka o stałej szerokości"
 
 msgid "The system's monospace font unless another is chosen."
 msgstr "Systemowa czcionka o stałej szerokości, o ile nie wybrano innej."
-
-msgid "Message card actions palette"
-msgstr "Paleta działań na kartach wiadomości"
-
-msgid "Message card actions palette timeout"
-msgstr "Czas wyświetlania palety działań na kartach"
-
-msgid "Message card actions palette as a menu"
-msgstr "Paleta działań na kartach jako menu"
-
-msgid "The ⋯ opens the right-click menu instead."
-msgstr ""
 
 msgid "Single messages as cards"
 msgstr "Pojedyncze wiadomości jako karty"
@@ -9577,13 +9495,89 @@ msgstr "Zbiorcza skrzynka odbiorcza w jasnym motywie"
 msgid "Hyprlab"
 msgstr "Hyprlab"
 
-#, fuzzy
-#~ msgid "✗ Tuta: {e}"
-#~ msgstr "✗ SMTP: {e}"
+#~ msgid "Not spam"
+#~ msgstr "To nie jest spam"
+
+#~ msgid "Add sender to Contacts"
+#~ msgstr "Dodaj nadawcę do kontaktów"
+
+#~ msgid "Mark as unread"
+#~ msgstr "Oznacz jako nieprzeczytane"
+
+#~ msgid "Remove star"
+#~ msgstr "Usuń gwiazdkę"
 
 #, fuzzy
-#~ msgid "This account can't take in mail from another account."
-#~ msgstr "Konto POP3 nie może przyjmować poczty z innego konta"
+#~ msgid "Star this message"
+#~ msgstr "Modyfikuj tę wiadomość"
+
+#~ msgid "View source"
+#~ msgstr "Wyświetl źródło"
+
+#, fuzzy
+#~ msgid "Translate this message"
+#~ msgstr "Usuń tę wiadomość"
+
+#~ msgid "Reply to this message"
+#~ msgstr "Odpowiedz na tę wiadomość"
+
+#~ msgid "Reply to everyone on this message"
+#~ msgstr "Odpowiedz wszystkim adresatom tej wiadomości"
+
+#~ msgid "Forward this message"
+#~ msgstr "Przekaż dalej tę wiadomość"
+
+#~ msgid "Move this message to a folder"
+#~ msgstr "Przenieś tę wiadomość do katalogu"
+
+#~ msgid "Archive this message"
+#~ msgstr "Archiwizuj tę wiadomość"
+
+#~ msgid "Delete this message"
+#~ msgstr "Usuń tę wiadomość"
+
+#~ msgid "Show remote content"
+#~ msgstr "Wyświetl zdalne treści"
+
+#~ msgid "Block remote content"
+#~ msgstr "Blokuj zdalne treści"
+
+#~ msgid "Hidden behind a toggle"
+#~ msgstr "Ukryta za przełącznikiem"
+
+#~ msgid "Shown while hovering"
+#~ msgstr "Wyświetlana po najechaniu kursorem"
+
+#~ msgid "Always visible"
+#~ msgstr "Zawsze widoczna"
+
+#~ msgid "Actions palette in the message list"
+#~ msgstr "Paleta działań na liście wiadomości"
+
+#, fuzzy
+#~ msgid "The ⋯ row under each message."
+#~ msgstr "Załączniki przy każdej wiadomości"
+
+#~ msgid "Open the actions palette on hover"
+#~ msgstr "Otwieranie palety działań po najechaniu kursorem"
+
+#~ msgid "Actions palette timeout"
+#~ msgstr "Czas wyświetlania palety działań"
+
+#, fuzzy
+#~ msgid "Seconds it stays open after the pointer leaves."
+#~ msgstr ""
+#~ "Liczba sekund, przez które paleta działań karty pozostaje otwarta po "
+#~ "odsunięciu z niej kursora."
+
+#~ msgid "Message card actions palette"
+#~ msgstr "Paleta działań na kartach wiadomości"
+
+#~ msgid "Message card actions palette timeout"
+#~ msgstr "Czas wyświetlania palety działań na kartach"
+
+#~ msgid "Message card actions palette as a menu"
+#~ msgstr "Paleta działań na kartach jako menu"
 
 #~ msgid "Could not rename folder: unknown folder"
 #~ msgstr "Nie udało się zmienić nazwy katalogu: nieznany katalog"

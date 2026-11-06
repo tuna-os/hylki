@@ -288,6 +288,14 @@ msgstr "Déplier tous les messages"
 msgid "Collapse All Messages"
 msgstr "Réduire tous les messages"
 
+#, fuzzy
+msgid "Back to My Fonts and Colors"
+msgstr "Retour à mes polices et couleurs"
+
+#, fuzzy
+msgid "Show Sender's Fonts and Colors"
+msgstr "Afficher les polices et les couleurs de l’expéditeur"
+
 msgid "View Source"
 msgstr "Afficher le code source"
 
@@ -875,6 +883,10 @@ msgstr "Jusqu’au {date}"
 
 msgid "Sort by"
 msgstr "Trier par"
+
+#, fuzzy
+msgid "Use for All Folders"
+msgstr "Tous les dossiers"
 
 msgid "Show only"
 msgstr "Afficher uniquement"
@@ -2576,9 +2588,8 @@ msgstr "Saisissez d’abord votre adresse e-mail et votre mot de passe."
 msgid "Signing in…"
 msgstr "Connexion…"
 
-#, fuzzy
 msgid "✓ {provider}: signed in"
-msgstr "Non connecté"
+msgstr ""
 
 msgid "✗ {provider}: {e}"
 msgstr ""
@@ -3253,6 +3264,10 @@ msgstr "Type (Z–A)"
 
 msgid "Previous"
 msgstr "Précédent"
+
+#, fuzzy
+msgid "No preview available"
+msgstr "Aucun dossier {v1} disponible"
 
 msgid "Next"
 msgstr "Suivant"
@@ -4068,7 +4083,7 @@ msgstr "Mot de passe"
 
 #, fuzzy
 msgid "The account did not answer."
-msgstr "Le service n’a pas accepté la clé."
+msgstr "La liste des comptes sous Boîtes de réception."
 
 #, fuzzy
 msgid "Cannot merge a confidential message"
@@ -5208,21 +5223,6 @@ msgid "Drag to resize, double-click for the usual width"
 msgstr ""
 "Faites glisser pour redimensionner, double-cliquez pour la largeur habituelle"
 
-msgid "Mark as read"
-msgstr "Marquer comme lu"
-
-msgid "Not spam"
-msgstr "Non indésirable"
-
-msgid "Add sender to Contacts"
-msgstr "Ajouter l’expéditeur aux contacts"
-
-msgid "Mark as unread"
-msgstr "Marquer comme non lu"
-
-msgid "Remove star"
-msgstr "Retirer l’étoile"
-
 msgid "High importance"
 msgstr "Importance haute"
 
@@ -5359,48 +5359,6 @@ msgstr "Masquer les destinataires"
 
 msgid "Show recipients"
 msgstr "Afficher les destinataires"
-
-msgid "Mark as read or unread"
-msgstr "Marquer comme lu ou non lu"
-
-msgid "Star this message"
-msgstr "Ajouter une étoile à ce message"
-
-msgid "View source"
-msgstr "Afficher le code source"
-
-msgid "Translate this message"
-msgstr "Traduire ce message"
-
-msgid "Reply to this message"
-msgstr "Répondre à ce message"
-
-msgid "Reply to everyone on this message"
-msgstr "Répondre à tous sur ce message"
-
-msgid "Forward this message"
-msgstr "Transférer ce message"
-
-msgid "Move this message to a folder"
-msgstr "Déplacer ce message vers un dossier"
-
-msgid "Archive this message"
-msgstr "Archiver ce message"
-
-msgid "Delete this message"
-msgstr "Supprimer ce message"
-
-msgid "Back to my fonts and colors"
-msgstr "Retour à mes polices et couleurs"
-
-msgid "Show the sender's fonts and colors"
-msgstr "Afficher les polices et les couleurs de l’expéditeur"
-
-msgid "Show remote content"
-msgstr "Afficher le contenu distant"
-
-msgid "Block remote content"
-msgstr "Bloquer le contenu distant"
 
 msgid "Click to open this message"
 msgstr "Cliquez pour ouvrir ce message"
@@ -6148,15 +6106,6 @@ msgstr "Mode Lecture activé"
 msgid "Reader View off"
 msgstr "Mode Lecture désactivé"
 
-msgid "Hidden behind a toggle"
-msgstr "Masqué derrière un bouton"
-
-msgid "Shown while hovering"
-msgstr "Affiché au survol"
-
-msgid "Always visible"
-msgstr "Toujours visible"
-
 msgid "Ask each time"
 msgstr "Demander à chaque fois"
 
@@ -6384,6 +6333,9 @@ msgstr "Message transféré"
 
 msgid "Each opens in a window for you to check and send."
 msgstr ""
+
+msgid "Mark as read or unread"
+msgstr "Marquer comme lu ou non lu"
 
 #, fuzzy
 msgid "Add and remove stars"
@@ -6645,15 +6597,6 @@ msgstr "Teinter les messages avec tag"
 msgid "In the color of its first tag."
 msgstr "Dans la couleur de son premier tag."
 
-msgid "Actions palette in the message list"
-msgstr "Palette d’actions dans la liste des messages"
-
-msgid "The ⋯ row under each message."
-msgstr "La ligne ⋯ sous chaque message."
-
-msgid "Open the actions palette on hover"
-msgstr "Ouvrir la palette d’actions au survol"
-
 msgid "Swipe actions"
 msgstr "Actions par glissement"
 
@@ -6673,13 +6616,6 @@ msgid "Raise it if swipes stop short. Mouse drags are unaffected."
 msgstr ""
 "Augmentez-la si les balayages s’arrêtent trop tôt. Les glissements à la "
 "souris ne sont pas affectés."
-
-msgid "Actions palette timeout"
-msgstr "Délai d’expiration de la palette d’actions"
-
-msgid "Seconds it stays open after the pointer leaves."
-msgstr ""
-"Secondes pendant lesquelles il reste ouvert après que le pointeur l’a quitté."
 
 msgid "Columns"
 msgstr "Colonnes"
@@ -7088,6 +7024,9 @@ msgstr "Insérer"
 msgid "Show or hide folders"
 msgstr "Afficher ou masquer les dossiers"
 
+msgid "Long-press to expand or collapse"
+msgstr "Appui long pour déplier ou replier"
+
 msgid "Show or hide labels"
 msgstr "Afficher ou masquer les tags"
 
@@ -7192,9 +7131,6 @@ msgstr "Afficher chaque dossier intelligent"
 
 msgid "Show each address book"
 msgstr "Afficher chaque carnet d’adresses"
-
-msgid "Long-press to expand or collapse"
-msgstr "Appui long pour déplier ou replier"
 
 msgid "Show or hide tags"
 msgstr "Afficher ou masquer les tags"
@@ -7599,9 +7535,8 @@ msgstr "Code de vérification en deux étapes (le cas échéant)"
 msgid "Enter the account's mailbox password."
 msgstr "Indiquez le mot de passe."
 
-#, fuzzy
 msgid "The mailbox password was not accepted."
-msgstr "Code de vérification en deux étapes (le cas échéant)"
+msgstr ""
 
 msgid "The server wants to confirm that a person is signing in."
 msgstr ""
@@ -7651,8 +7586,7 @@ msgstr "Il n’y a pas de dossier d’installation."
 #, fuzzy
 msgid "Tuta's own folders can't be changed."
 msgstr ""
-"Microsoft 365 classe sa propre copie dans Éléments envoyés ; cela ne peut "
-"pas être modifié."
+"Le compte doit se connecter avant que ses dossiers puissent être modifiés."
 
 msgid "The account has reached Tuta's limit for that."
 msgstr ""
@@ -7680,7 +7614,7 @@ msgstr "Le service n’a pas accepté la clé."
 
 #, fuzzy
 msgid "The draft is no longer on the server."
-msgstr "Ce dossier n’existe pas sur le serveur"
+msgstr "Le message est trop long pour le serveur."
 
 #, fuzzy
 msgid "The server did not store the draft."
@@ -7698,7 +7632,7 @@ msgstr ""
 
 #, fuzzy
 msgid "The message could not be read, so it was not stored."
-msgstr "Les fichiers n’ont pas pu être supprimés."
+msgstr "Un message n’a pas pu être déplacé vers {account} : {error}"
 
 #, fuzzy
 msgid "The message is too large for Tuta to take in."
@@ -7955,9 +7889,8 @@ msgstr ""
 "Le POP3 ne permet pas de modifier un message sur le serveur, la pièce jointe "
 "n’a donc pas été supprimée"
 
-#, fuzzy
 msgid "Proton accounts can't save drafts on the server from Hylki yet"
-msgstr "Ce compte ne peut pas avoir de dossiers à la racine."
+msgstr ""
 
 msgid ""
 "Folders of a Proton account can't be created, renamed or deleted from Hylki "
@@ -8736,6 +8669,9 @@ msgstr "Mots ajoutés"
 msgid "Changes apply after a restart."
 msgstr "Les changements s’appliquent après un redémarrage."
 
+msgid "Mark as read"
+msgstr "Marquer comme lu"
+
 msgid "Conversations mark each message as it comes into view."
 msgstr ""
 "Les conversations marquent chaque message au moment où il apparaît à l’écran."
@@ -8790,18 +8726,6 @@ msgstr "Police monospace"
 
 msgid "The system's monospace font unless another is chosen."
 msgstr "La police à espacement fixe du système, sauf si une autre est choisie."
-
-msgid "Message card actions palette"
-msgstr "Palette d’actions de la carte du message"
-
-msgid "Message card actions palette timeout"
-msgstr "Délai d’expiration de la palette d’actions de la carte du message"
-
-msgid "Message card actions palette as a menu"
-msgstr "Palette d’actions de la carte du message sous forme de menu"
-
-msgid "The ⋯ opens the right-click menu instead."
-msgstr "Le ⋯ ouvre à la place le menu contextuel."
 
 msgid "Single messages as cards"
 msgstr "Messages isolés sous forme de cartes"
@@ -9154,13 +9078,88 @@ msgstr "La boîte de réception unifiée en mode clair"
 msgid "Hyprlab"
 msgstr "Hyprlab"
 
-#, fuzzy
-#~ msgid "✗ Tuta: {e}"
-#~ msgstr "✗ SMTP : {e}"
+#~ msgid "Not spam"
+#~ msgstr "Non indésirable"
 
-#, fuzzy
-#~ msgid "This account can't take in mail from another account."
-#~ msgstr "Un compte POP3 ne peut pas recevoir de courrier d’un autre compte"
+#~ msgid "Add sender to Contacts"
+#~ msgstr "Ajouter l’expéditeur aux contacts"
+
+#~ msgid "Mark as unread"
+#~ msgstr "Marquer comme non lu"
+
+#~ msgid "Remove star"
+#~ msgstr "Retirer l’étoile"
+
+#~ msgid "Star this message"
+#~ msgstr "Ajouter une étoile à ce message"
+
+#~ msgid "View source"
+#~ msgstr "Afficher le code source"
+
+#~ msgid "Translate this message"
+#~ msgstr "Traduire ce message"
+
+#~ msgid "Reply to this message"
+#~ msgstr "Répondre à ce message"
+
+#~ msgid "Reply to everyone on this message"
+#~ msgstr "Répondre à tous sur ce message"
+
+#~ msgid "Forward this message"
+#~ msgstr "Transférer ce message"
+
+#~ msgid "Move this message to a folder"
+#~ msgstr "Déplacer ce message vers un dossier"
+
+#~ msgid "Archive this message"
+#~ msgstr "Archiver ce message"
+
+#~ msgid "Delete this message"
+#~ msgstr "Supprimer ce message"
+
+#~ msgid "Show remote content"
+#~ msgstr "Afficher le contenu distant"
+
+#~ msgid "Block remote content"
+#~ msgstr "Bloquer le contenu distant"
+
+#~ msgid "Hidden behind a toggle"
+#~ msgstr "Masqué derrière un bouton"
+
+#~ msgid "Shown while hovering"
+#~ msgstr "Affiché au survol"
+
+#~ msgid "Always visible"
+#~ msgstr "Toujours visible"
+
+#~ msgid "Actions palette in the message list"
+#~ msgstr "Palette d’actions dans la liste des messages"
+
+#~ msgid "The ⋯ row under each message."
+#~ msgstr "La ligne ⋯ sous chaque message."
+
+#~ msgid "Open the actions palette on hover"
+#~ msgstr "Ouvrir la palette d’actions au survol"
+
+#~ msgid "Actions palette timeout"
+#~ msgstr "Délai d’expiration de la palette d’actions"
+
+#~ msgid "Seconds it stays open after the pointer leaves."
+#~ msgstr ""
+#~ "Secondes pendant lesquelles il reste ouvert après que le pointeur l’a "
+#~ "quitté."
+
+#~ msgid "Message card actions palette"
+#~ msgstr "Palette d’actions de la carte du message"
+
+#~ msgid "Message card actions palette timeout"
+#~ msgstr "Délai d’expiration de la palette d’actions de la carte du message"
+
+#~ msgid "Message card actions palette as a menu"
+#~ msgstr "Palette d’actions de la carte du message sous forme de menu"
+
+#~ msgid "The ⋯ opens the right-click menu instead."
+#~ msgstr "Le ⋯ ouvre à la place le menu contextuel."
 
 #~ msgid "Received"
 #~ msgstr "Reçu"
@@ -10917,9 +10916,6 @@ msgstr "Hyprlab"
 #~ "Dans la section unifiée, comme une ligne semblable à Boîtes de réception "
 #~ "dont le chevron ouvre les dossiers ; ou au-dessus ou en dessous des "
 #~ "comptes, comme un en-tête avec sa propre liste."
-
-#~ msgid "The account list under Inboxes."
-#~ msgstr "La liste des comptes sous Boîtes de réception."
 
 #~ msgid ""
 #~ "Swipe (mouse-drag or trackpad) a message left to delete it and right to "

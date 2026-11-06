@@ -29,8 +29,6 @@ impl AppModel {
             push: self.push,
             metered_save_data: self.metered_save_data,
             blacklist: self.blacklist.clone(),
-            palette_collapse_secs: self.palette_collapse_secs,
-            card_palette_collapse_secs: self.card_palette_collapse_secs,
             threading: self.threading,
             threads_expanded: self.threads_expanded,
             thread_expansion: self.thread_expansion,
@@ -62,11 +60,6 @@ impl AppModel {
             notification_buttons: self.notification_buttons.to_list(),
             show_attachments: self.show_attachments,
             settings_open_accounts: self.settings_open_accounts,
-            card_actions_hover: self.card_actions_hover,
-            card_actions_auto: self.card_actions_auto,
-            list_palette: self.list_palette,
-            list_palette_hover: self.list_palette_hover,
-            card_palette_menu: self.card_palette_menu,
             swipe_enabled: self.swipe_enabled,
             swipe_reversed: self.swipe_reversed,
             swipe_sensitivity: self.swipe_sensitivity,
@@ -105,6 +98,7 @@ impl AppModel {
             list_pills_below: self.list_pills_below,
             list_sort: self.list_sort.0.to_string(),
             list_sort_reversed: self.list_sort.1,
+            list_sorts: self.list_sorts.clone(),
             date_groups_default_applied: true,
             list_search_open: self.list_search_open,
             contacts_search_open: self.contacts_search_open,
@@ -208,10 +202,7 @@ impl AppModel {
         self.message_list.emit(MessageListInput::SetColumnWidths(
             self.list_column_widths.clone(),
         ));
-        self.message_list.emit(MessageListInput::SetSort {
-            order: crate::ui::message_list::SortOrder::from_key(self.list_sort.0),
-            reversed: self.list_sort.1,
-        });
+        self.apply_view_sort();
         self.sidebars_emit(SidebarInput::SetFocus {
             hide_accounts: self.focus.active(config::FocusPart::HideAccounts),
             fold_unified: self.focus.active(config::FocusPart::FoldUnified),
@@ -224,12 +215,7 @@ impl AppModel {
         self.message_list
             .emit(MessageListInput::SetThreadRowNewest(self.thread_row_newest));
         self.message_list
-            .emit(MessageListInput::SetListPalette(self.list_palette));
-        self.message_list
             .emit(MessageListInput::SetThreadsExpanded(self.threads_expanded));
-        self.message_list.emit(MessageListInput::SetPaletteCollapse(
-            self.palette_collapse_secs,
-        ));
         self.message_view.emit(MessageViewInput::SetContentTheme(
             self.message_theme.dark_override(),
         ));

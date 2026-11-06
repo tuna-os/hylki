@@ -550,9 +550,7 @@ pub(crate) enum AppMsg {
     },
     /// The reader toolbar's Mark as Read/Unread toggle for the open message.
     ToggleReadCurrent,
-    /// A card's "Add sender to Contacts" button.
-    CardContact(Box<Message>),
-    /// A row's palette or context-menu action. `conversation` holds the whole
+    /// A row's context-menu action. `conversation` holds the whole
     /// thread when the row stands for a collapsed conversation rather than for
     /// `message` alone — a reply started there answers the conversation's
     /// newest message, not the head it is filed under (#210). Empty otherwise.
@@ -823,6 +821,8 @@ pub(crate) enum AppMsg {
     /// The list's sort changed, by its key and whether it is reversed: the
     /// sort menus follow and it is kept (#334, #574).
     ListSortChanged(&'static str, bool),
+    /// The open view's sort becomes every view's.
+    ListSortForAll,
 
     // ---- on_identity (identity.rs) ----
     /// A Gravatar one of the accounts asked for came back (#189).

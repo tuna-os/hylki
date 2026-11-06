@@ -289,6 +289,14 @@ msgstr "Ανάπτυξη όλων των μηνυμάτων"
 msgid "Collapse All Messages"
 msgstr "Σύμπτυξη όλων των μηνυμάτων"
 
+#, fuzzy
+msgid "Back to My Fonts and Colors"
+msgstr "Επιστροφή στις γραμματοσειρές και τα χρώματά μου"
+
+#, fuzzy
+msgid "Show Sender's Fonts and Colors"
+msgstr "Εμφάνιση των γραμματοσειρών και των χρωμάτων του αποστολέα"
+
 msgid "View Source"
 msgstr "Προβολή πηγαίου κώδικα"
 
@@ -879,6 +887,10 @@ msgstr "Έως {date}"
 
 msgid "Sort by"
 msgstr "Ταξινόμηση κατά"
+
+#, fuzzy
+msgid "Use for All Folders"
+msgstr "Όλοι οι φάκελοι"
 
 msgid "Show only"
 msgstr "Εμφάνιση μόνο"
@@ -2584,9 +2596,8 @@ msgstr "Εισαγάγετε πρώτα τη διεύθυνση email και τ�
 msgid "Signing in…"
 msgstr "Σύνδεση…"
 
-#, fuzzy
 msgid "✓ {provider}: signed in"
-msgstr "Δεν έχει γίνει σύνδεση"
+msgstr ""
 
 msgid "✗ {provider}: {e}"
 msgstr ""
@@ -3264,6 +3275,10 @@ msgstr "Τύπος (Ω–Α)"
 
 msgid "Previous"
 msgstr "Προηγούμενο"
+
+#, fuzzy
+msgid "No preview available"
+msgstr "Δεν υπάρχει διαθέσιμος φάκελος {v1}"
 
 msgid "Next"
 msgstr "Επόμενο"
@@ -4087,7 +4102,7 @@ msgstr "Κωδικός πρόσβασης"
 
 #, fuzzy
 msgid "The account did not answer."
-msgstr "Η υπηρεσία δεν αποδέχτηκε το κλειδί."
+msgstr "Απόκρυψη των λογαριασμών στην πλευρική στήλη"
 
 #, fuzzy
 msgid "Cannot merge a confidential message"
@@ -5227,21 +5242,6 @@ msgstr "Εμφάνιση συζήτησης"
 msgid "Drag to resize, double-click for the usual width"
 msgstr "Σύρετε για αλλαγή μεγέθους, κάντε διπλό κλικ για το συνηθισμένο πλάτος"
 
-msgid "Mark as read"
-msgstr "Σήμανση ως αναγνωσμένο"
-
-msgid "Not spam"
-msgstr "Μη ανεπιθύμητο"
-
-msgid "Add sender to Contacts"
-msgstr "Προσθήκη αποστολέα στις Επαφές"
-
-msgid "Mark as unread"
-msgstr "Σήμανση ως μη αναγνωσμένο"
-
-msgid "Remove star"
-msgstr "Αφαίρεση αστεριού"
-
 msgid "High importance"
 msgstr "Υψηλή σημασία"
 
@@ -5378,48 +5378,6 @@ msgstr "Απόκρυψη παραληπτών"
 
 msgid "Show recipients"
 msgstr "Εμφάνιση παραληπτών"
-
-msgid "Mark as read or unread"
-msgstr "Σήμανση ως αναγνωσμένο ή μη αναγνωσμένο"
-
-msgid "Star this message"
-msgstr "Προσθήκη αστεριού σε αυτό το μήνυμα"
-
-msgid "View source"
-msgstr "Προβολή πηγαίου κώδικα"
-
-msgid "Translate this message"
-msgstr "Μετάφραση αυτού του μηνύματος"
-
-msgid "Reply to this message"
-msgstr "Απάντηση σε αυτό το μήνυμα"
-
-msgid "Reply to everyone on this message"
-msgstr "Απάντηση σε όλους σε αυτό το μήνυμα"
-
-msgid "Forward this message"
-msgstr "Προώθηση αυτού του μηνύματος"
-
-msgid "Move this message to a folder"
-msgstr "Μετακίνηση αυτού του μηνύματος σε φάκελο"
-
-msgid "Archive this message"
-msgstr "Αρχειοθέτηση αυτού του μηνύματος"
-
-msgid "Delete this message"
-msgstr "Διαγραφή αυτού του μηνύματος"
-
-msgid "Back to my fonts and colors"
-msgstr "Επιστροφή στις γραμματοσειρές και τα χρώματά μου"
-
-msgid "Show the sender's fonts and colors"
-msgstr "Εμφάνιση των γραμματοσειρών και των χρωμάτων του αποστολέα"
-
-msgid "Show remote content"
-msgstr "Εμφάνιση απομακρυσμένου περιεχομένου"
-
-msgid "Block remote content"
-msgstr "Αποκλεισμός απομακρυσμένου περιεχομένου"
 
 msgid "Click to open this message"
 msgstr "Κάντε κλικ για να ανοίξετε αυτό το μήνυμα"
@@ -6165,15 +6123,6 @@ msgstr "Προβολή ανάγνωσης ενεργή"
 msgid "Reader View off"
 msgstr "Προβολή ανάγνωσης ανενεργή"
 
-msgid "Hidden behind a toggle"
-msgstr "Κρυμμένη πίσω από διακόπτη"
-
-msgid "Shown while hovering"
-msgstr "Εμφάνιση κατά την αιώρηση"
-
-msgid "Always visible"
-msgstr "Πάντα ορατή"
-
 msgid "Ask each time"
 msgstr "Ερώτηση κάθε φορά"
 
@@ -6401,6 +6350,9 @@ msgstr "Προωθημένο μήνυμα"
 
 msgid "Each opens in a window for you to check and send."
 msgstr ""
+
+msgid "Mark as read or unread"
+msgstr "Σήμανση ως αναγνωσμένο ή μη αναγνωσμένο"
 
 #, fuzzy
 msgid "Add and remove stars"
@@ -6664,15 +6616,6 @@ msgstr "Χρωματισμός μηνυμάτων με ετικέτα"
 msgid "In the color of its first tag."
 msgstr "Στο χρώμα της πρώτης ετικέτας του."
 
-msgid "Actions palette in the message list"
-msgstr "Παλέτα ενεργειών στη λίστα μηνυμάτων"
-
-msgid "The ⋯ row under each message."
-msgstr "Η γραμμή ⋯ κάτω από κάθε μήνυμα."
-
-msgid "Open the actions palette on hover"
-msgstr "Άνοιγμα της παλέτας ενεργειών κατά την αιώρηση"
-
 msgid "Swipe actions"
 msgstr "Ενέργειες σάρωσης"
 
@@ -6692,12 +6635,6 @@ msgid "Raise it if swipes stop short. Mouse drags are unaffected."
 msgstr ""
 "Αυξήστε την τιμή αν οι κινήσεις σάρωσης δεν φτάνουν μέχρι το τέλος. Οι "
 "κινήσεις με το ποντίκι δεν επηρεάζονται."
-
-msgid "Actions palette timeout"
-msgstr "Χρόνος λήξης παλέτας ενεργειών"
-
-msgid "Seconds it stays open after the pointer leaves."
-msgstr "Δευτερόλεπτα που παραμένει ανοιχτό αφού απομακρυνθεί ο δείκτης."
 
 msgid "Columns"
 msgstr "Στήλες"
@@ -7114,6 +7051,9 @@ msgstr "Εισαγωγή"
 msgid "Show or hide folders"
 msgstr "Εμφάνιση ή απόκρυψη φακέλων"
 
+msgid "Long-press to expand or collapse"
+msgstr "Παρατεταμένο πάτημα για ανάπτυξη ή σύμπτυξη"
+
 msgid "Show or hide labels"
 msgstr "Εμφάνιση ή απόκρυψη ετικετών"
 
@@ -7218,9 +7158,6 @@ msgstr "Εμφάνιση κάθε έξυπνου φακέλου"
 
 msgid "Show each address book"
 msgstr "Εμφάνιση κάθε καταλόγου διευθύνσεων"
-
-msgid "Long-press to expand or collapse"
-msgstr "Παρατεταμένο πάτημα για ανάπτυξη ή σύμπτυξη"
 
 msgid "Show or hide tags"
 msgstr "Εμφάνιση ή απόκρυψη ετικετών"
@@ -7631,9 +7568,8 @@ msgstr "Κωδικός επαλήθευσης δύο βημάτων (αν χρη
 msgid "Enter the account's mailbox password."
 msgstr "Εισαγάγετε τον κωδικό πρόσβασης."
 
-#, fuzzy
 msgid "The mailbox password was not accepted."
-msgstr "Κωδικός επαλήθευσης δύο βημάτων (αν χρησιμοποιείται)"
+msgstr ""
 
 msgid "The server wants to confirm that a person is signing in."
 msgstr ""
@@ -7682,9 +7618,7 @@ msgstr "Δεν υπάρχει φάκελος εγκατάστασης."
 
 #, fuzzy
 msgid "Tuta's own folders can't be changed."
-msgstr ""
-"Το Microsoft 365 αποθηκεύει το δικό του αντίγραφο στα Απεσταλμένα· αυτό δεν "
-"μπορεί να αλλάξει."
+msgstr "Ο λογαριασμός πρέπει να συνδεθεί πριν τροποποιηθούν οι φάκελοί του."
 
 msgid "The account has reached Tuta's limit for that."
 msgstr ""
@@ -7712,7 +7646,7 @@ msgstr "Η υπηρεσία δεν αποδέχτηκε το κλειδί."
 
 #, fuzzy
 msgid "The draft is no longer on the server."
-msgstr "Αυτός ο φάκελος δεν υπάρχει στον διακομιστή"
+msgstr "Το μήνυμα είναι υπερβολικά μεγάλο για τον διακομιστή."
 
 #, fuzzy
 msgid "The server did not store the draft."
@@ -7730,7 +7664,7 @@ msgstr ""
 
 #, fuzzy
 msgid "The message could not be read, so it was not stored."
-msgstr "Δεν ήταν δυνατή η αφαίρεση των αρχείων."
+msgstr "Δεν ήταν δυνατή η μετακίνηση ενός μηνύματος στο {account}: {error}"
 
 #, fuzzy
 msgid "The message is too large for Tuta to take in."
@@ -7988,9 +7922,8 @@ msgstr ""
 "Το POP3 δεν μπορεί να τροποποιήσει ένα μήνυμα στον διακομιστή, επομένως το "
 "συνημμένο δεν αφαιρέθηκε."
 
-#, fuzzy
 msgid "Proton accounts can't save drafts on the server from Hylki yet"
-msgstr "Αυτός ο λογαριασμός δεν επιτρέπει φακέλους στο ανώτατο επίπεδο."
+msgstr ""
 
 msgid ""
 "Folders of a Proton account can't be created, renamed or deleted from Hylki "
@@ -8778,6 +8711,9 @@ msgstr "Λέξεις που προστέθηκαν"
 msgid "Changes apply after a restart."
 msgstr "Οι αλλαγές εφαρμόζονται μετά από επανεκκίνηση."
 
+msgid "Mark as read"
+msgstr "Σήμανση ως αναγνωσμένο"
+
 msgid "Conversations mark each message as it comes into view."
 msgstr "Οι συζητήσεις σημειώνουν κάθε μήνυμα ως αναγνωσμένο καθώς εμφανίζεται."
 
@@ -8830,18 +8766,6 @@ msgstr "Γραμματοσειρά σταθερού πλάτους"
 
 msgid "The system's monospace font unless another is chosen."
 msgstr "Η γραμματοσειρά monospace του συστήματος, εκτός αν επιλεγεί άλλη."
-
-msgid "Message card actions palette"
-msgstr "Παλέτα ενεργειών κάρτας μηνύματος"
-
-msgid "Message card actions palette timeout"
-msgstr "Χρόνος λήξης παλέτας ενεργειών κάρτας μηνύματος"
-
-msgid "Message card actions palette as a menu"
-msgstr "Παλέτα ενεργειών κάρτας μηνύματος ως μενού"
-
-msgid "The ⋯ opens the right-click menu instead."
-msgstr "Το ⋯ ανοίγει αντί γι’ αυτό το μενού δεξιού κλικ."
 
 msgid "Single messages as cards"
 msgstr "Μεμονωμένα μηνύματα ως κάρτες"
@@ -9199,15 +9123,86 @@ msgstr "Τα ενοποιημένα εισερχόμενα σε φωτεινή �
 msgid "Hyprlab"
 msgstr "Hyprlab"
 
-#, fuzzy
-#~ msgid "✗ Tuta: {e}"
-#~ msgstr "✗ SMTP: {e}"
+#~ msgid "Not spam"
+#~ msgstr "Μη ανεπιθύμητο"
 
-#, fuzzy
-#~ msgid "This account can't take in mail from another account."
-#~ msgstr ""
-#~ "Ένας λογαριασμός POP3 δεν μπορεί να λαμβάνει αλληλογραφία από άλλον "
-#~ "λογαριασμό"
+#~ msgid "Add sender to Contacts"
+#~ msgstr "Προσθήκη αποστολέα στις Επαφές"
+
+#~ msgid "Mark as unread"
+#~ msgstr "Σήμανση ως μη αναγνωσμένο"
+
+#~ msgid "Remove star"
+#~ msgstr "Αφαίρεση αστεριού"
+
+#~ msgid "Star this message"
+#~ msgstr "Προσθήκη αστεριού σε αυτό το μήνυμα"
+
+#~ msgid "View source"
+#~ msgstr "Προβολή πηγαίου κώδικα"
+
+#~ msgid "Translate this message"
+#~ msgstr "Μετάφραση αυτού του μηνύματος"
+
+#~ msgid "Reply to this message"
+#~ msgstr "Απάντηση σε αυτό το μήνυμα"
+
+#~ msgid "Reply to everyone on this message"
+#~ msgstr "Απάντηση σε όλους σε αυτό το μήνυμα"
+
+#~ msgid "Forward this message"
+#~ msgstr "Προώθηση αυτού του μηνύματος"
+
+#~ msgid "Move this message to a folder"
+#~ msgstr "Μετακίνηση αυτού του μηνύματος σε φάκελο"
+
+#~ msgid "Archive this message"
+#~ msgstr "Αρχειοθέτηση αυτού του μηνύματος"
+
+#~ msgid "Delete this message"
+#~ msgstr "Διαγραφή αυτού του μηνύματος"
+
+#~ msgid "Show remote content"
+#~ msgstr "Εμφάνιση απομακρυσμένου περιεχομένου"
+
+#~ msgid "Block remote content"
+#~ msgstr "Αποκλεισμός απομακρυσμένου περιεχομένου"
+
+#~ msgid "Hidden behind a toggle"
+#~ msgstr "Κρυμμένη πίσω από διακόπτη"
+
+#~ msgid "Shown while hovering"
+#~ msgstr "Εμφάνιση κατά την αιώρηση"
+
+#~ msgid "Always visible"
+#~ msgstr "Πάντα ορατή"
+
+#~ msgid "Actions palette in the message list"
+#~ msgstr "Παλέτα ενεργειών στη λίστα μηνυμάτων"
+
+#~ msgid "The ⋯ row under each message."
+#~ msgstr "Η γραμμή ⋯ κάτω από κάθε μήνυμα."
+
+#~ msgid "Open the actions palette on hover"
+#~ msgstr "Άνοιγμα της παλέτας ενεργειών κατά την αιώρηση"
+
+#~ msgid "Actions palette timeout"
+#~ msgstr "Χρόνος λήξης παλέτας ενεργειών"
+
+#~ msgid "Seconds it stays open after the pointer leaves."
+#~ msgstr "Δευτερόλεπτα που παραμένει ανοιχτό αφού απομακρυνθεί ο δείκτης."
+
+#~ msgid "Message card actions palette"
+#~ msgstr "Παλέτα ενεργειών κάρτας μηνύματος"
+
+#~ msgid "Message card actions palette timeout"
+#~ msgstr "Χρόνος λήξης παλέτας ενεργειών κάρτας μηνύματος"
+
+#~ msgid "Message card actions palette as a menu"
+#~ msgstr "Παλέτα ενεργειών κάρτας μηνύματος ως μενού"
+
+#~ msgid "The ⋯ opens the right-click menu instead."
+#~ msgstr "Το ⋯ ανοίγει αντί γι’ αυτό το μενού δεξιού κλικ."
 
 #~ msgid "Could not rename folder: unknown folder"
 #~ msgstr "Δεν ήταν δυνατή η μετονομασία φακέλου: άγνωστος φάκελος"

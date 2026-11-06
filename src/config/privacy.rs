@@ -20,6 +20,15 @@ use super::sections::{
 };
 use super::{config_file, default_on, is_zero, save_private_toml, write_private};
 
+/// A sort a view keeps for itself: `SortOrder`'s key, and whether a heading
+/// turned it the other way.
+#[derive(Clone, Debug, Deserialize, PartialEq, Eq, Serialize)]
+pub(crate) struct ListSort {
+    pub(crate) order: String,
+    #[serde(default)]
+    pub(crate) reversed: bool,
+}
+
 /// Every preference privacy.toml holds. The name is historical: the file
 /// began as the remote-content allowlist (`allowed_senders`).
 #[derive(Debug, Deserialize, Serialize)]
@@ -81,16 +90,6 @@ pub(crate) struct PrivacyFile {
     /// Stored lowercased; a bare domain like "spam.com" matches any sender there.
     #[serde(default)]
     pub(crate) blacklist: Vec<String>,
-    /// Seconds the message-list actions palette stays open after the cursor
-    /// leaves it before auto-collapsing. (A prior `palette_delay_ms` setting in
-    /// milliseconds is intentionally not migrated — its meaning has changed.)
-    #[serde(default = "default_palette_collapse")]
-    pub(crate) palette_collapse_secs: u64,
-    /// Seconds a message card's actions palette stays open after the cursor
-    /// leaves it. Separate from the list's: cards are read at a different
-    /// pace from a list being skimmed.
-    #[serde(default = "default_palette_collapse")]
-    pub(crate) card_palette_collapse_secs: u64,
     /// Group messages into conversation threads in the list.
     #[serde(default = "default_on")]
     pub(crate) threading: bool,
@@ -214,29 +213,6 @@ pub(crate) struct PrivacyFile {
     /// Accounts view instead of Preferences (the default).
     #[serde(default)]
     pub(crate) settings_open_accounts: bool,
-    /// Whether a conversation card's action icons stay hidden until the card
-    /// is hovered (expanded via their ⋯ toggle). Off = always shown, unless
-    /// `card_actions_auto` shows them automatically on hover.
-    #[serde(default = "default_on")]
-    pub(crate) card_actions_hover: bool,
-    /// With the ⋯ toggle off: show the action icons automatically while the
-    /// card is hovered (rather than always).
-    #[serde(default = "default_card_actions_auto")]
-    pub(crate) card_actions_auto: bool,
-    /// Whether the message list rows carry an actions palette at all. Off
-    /// removes the ⋯ line entirely, returning its space to the row.
-    #[serde(default = "default_on")]
-    pub(crate) list_palette: bool,
-    /// Whether the message list's actions palette opens on row hover, without
-    /// needing the ⋯ click.
-    #[serde(default)]
-    pub(crate) list_palette_hover: bool,
-    /// Whether the ⋯ on a message card opens the card's menu in place of
-    /// sliding its actions palette out. On for new installs (2026-10-06);
-    /// an install that saved its settings before then keeps its own value,
-    /// since every save writes every key.
-    #[serde(default = "default_on")]
-    pub(crate) card_palette_menu: bool,
     /// Whether message rows take a sideways swipe at all (#92, PR #135).
     #[serde(default = "default_on")]
     pub(crate) swipe_enabled: bool,
@@ -424,6 +400,10 @@ pub(crate) struct PrivacyFile {
     pub(crate) list_sort: String,
     #[serde(default)]
     pub(crate) list_sort_reversed: bool,
+    /// The sort a folder or other view keeps for itself, by the view's name.
+    /// A view not named here uses `list_sort`.
+    #[serde(default)]
+    pub(crate) list_sorts: std::collections::BTreeMap<String, ListSort>,
     /// Grouping by date was turned on once for an install from before it
     /// became the default: every save writes every key, so those files
     /// carry the old `false` without anyone having chosen it. A new
@@ -644,18 +624,8 @@ fn default_single_message_card() -> bool {
     true
 }
 
-fn default_palette_collapse() -> u64 {
-    5
-}
-
 fn default_notification_buttons() -> Vec<String> {
     NotificationButtons::default().to_list()
-}
-
-fn default_card_actions_auto() -> bool {
-    // Off for new installs (2026-08-30): card actions wait behind the ⋯
-    // toggle (card_actions_hover) rather than appearing on hover.
-    false
 }
 
 fn default_preview_lines() -> u32 {
@@ -709,8 +679,6 @@ impl Default for PrivacyFile {
             push: true,
             metered_save_data: true,
             blacklist: Vec::new(),
-            palette_collapse_secs: default_palette_collapse(),
-            card_palette_collapse_secs: default_palette_collapse(),
             threading: true,
             threads_expanded: false,
             thread_expansion: default_thread_expansion(),
@@ -742,11 +710,6 @@ impl Default for PrivacyFile {
             notification_buttons: default_notification_buttons(),
             show_attachments: true,
             settings_open_accounts: false,
-            card_actions_hover: true,
-            card_actions_auto: default_card_actions_auto(),
-            list_palette: true,
-            list_palette_hover: false,
-            card_palette_menu: true,
             swipe_enabled: true,
             swipe_reversed: false,
             swipe_sensitivity: default_swipe_sensitivity(),
@@ -791,6 +754,7 @@ impl Default for PrivacyFile {
             list_pills_below: false,
             list_sort: String::new(),
             list_sort_reversed: false,
+            list_sorts: Default::default(),
             date_groups_default_applied: true,
             list_search_open: false,
             contacts_search_open: false,

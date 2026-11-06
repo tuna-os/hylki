@@ -136,7 +136,7 @@ no Tuta or Proton account configured. If it would, it goes upstream.
 
 ## Releases
 
-- **Tags** are `v<upstream-version>-tuna<N>`, for example `v1.47.0-tuna1`, so
+- **Tags** are `v<upstream-version>-tuna<N>`, for example `v1.47.1-tuna1`, so
   the upstream base is always visible.
 - **Building:** `.github/workflows/fork-release.yml` builds the rebranded
   Flatpak (both helpers included) for x86_64 and aarch64 and attaches it to

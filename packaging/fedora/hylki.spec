@@ -4,7 +4,7 @@
 %global debug_package %{nil}
 
 Name:           hylki
-Version:        1.47.0
+Version:        1.47.1
 Release:        1%{?dist}
 Summary:        A clean, fast GNOME-native email client
 # The Tuta helper, /usr/bin/hylki-tuta (tuta-helper from tuta-unofficial-sdk,

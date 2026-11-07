@@ -85,7 +85,11 @@ nothing else; `fork-release.yml` and `import-from-hylki.sh` read them through
   `co.hyprlab.Hylki.yml` through `tools/local-manifest.sh`. Upstream's pins
   a tagged commit of hyprlab/hylki, which would build without the rebrand, so
   the fork's builds the rebranded tree it sits in. Every module, including the
-  Tuta (Rust) and Proton (Go) helpers, is upstream's recipe unchanged.
+  Tuta (Rust) and Proton (Go) helpers, is upstream's recipe, except that the
+  two Rust modules build in a cargo target directory under `/run/ccache`,
+  install from there, and first run `fork/ci-mtimes.py apply`, so a build
+  that keeps flatpak-builder's state directory recompiles only the crates
+  that changed (see "Building").
 
 Left alone on purpose: the bundled resource prefix `/co/hyprlab/Hylki`, which
 is private to the process (`main.rs` pins it), the `hylki` binary and gettext
@@ -135,6 +139,32 @@ branch builds the same bundles as workflow artifacts only. Upstream's
 `build-arm64.yml` also runs for these tags, because it matches every `v*` tag;
 its upstream-branded artifact can be ignored.
 
+The workflow keeps its builds fast with caches:
+
+- It runs in Flathub's builder image
+  (`ghcr.io/flathub-infra/flatpak-github-actions:gnome-50`), which holds the
+  GNOME runtime and SDK. The Rust and Go SDK extensions are cached per arch
+  and extension commit.
+- flatpak-builder's state directory is cached per arch, SDK commit and Rust
+  extension commit, one entry per commit built, and restored from the newest.
+  It holds the module cache, so poppler and the dictionaries are reused while
+  their sources are unchanged, the downloads, and the cargo target
+  directories. The app and both helpers build from the checkout, a directory
+  source that flatpak-builder cannot checksum, so those modules always run,
+  but `fork/ci-mtimes.py` gives every unchanged file, and the directories
+  build scripts watch, their timestamps from the cached build, and cargo then
+  recompiles only the crates that changed. The target directories are
+  dropped instead of saved once they pass 5 GB.
+- GitHub lets a run read only caches saved on its own ref or on `main`. Tag
+  runs therefore restore and never save, and a daily build of `main` (after
+  the upstream sync) keeps `main`'s caches current and inside GitHub's seven
+  days of eviction.
+- The x86_64 job waits for the aarch64 bundle and attaches both itself: a
+  separate release job queued for half an hour behind the organisation's
+  other runs.
+- A manual run with `clean` ticked builds from scratch, for a cache that has
+  gone bad.
+
 A local build follows the same steps as `fork-release.yml`. It needs
 `flatpak-builder`, the GNOME 50 SDK, and the `rust-stable` and `golang`
 extensions for 25.08 (see [docs/BUILDING.md](../docs/BUILDING.md)):
@@ -148,11 +178,15 @@ rsync -a --delete --exclude=.git --exclude=/target \
     --exclude=/native/tuta-unofficial-sdk/target \
     --exclude=/native/tuta-unofficial-sdk/upstream ./ /tmp/lifafa/
 fork/rebrand.sh /tmp/lifafa
-flatpak-builder --user --install --force-clean \
+flatpak-builder --user --install --force-clean --ccache \
     --state-dir=/tmp/lifafa-state /tmp/lifafa-build \
     /tmp/lifafa/fork/org.tunaos.lifafa.yml
 flatpak run org.tunaos.lifafa
 ```
+
+`--ccache` (the default in newer flatpak-builder) mounts the state
+directory's `ccache/` at `/run/ccache`, where the Rust modules keep their
+target directories; keep the same `--state-dir` between builds to reuse them.
 
 The icon's PNGs are rendered from the SVG; after changing it, run
 `rsvg-convert -w N -h N fork/icons/org.tunaos.lifafa.svg -o fork/icons/org.tunaos.lifafa-N.png`

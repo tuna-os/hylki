@@ -11,26 +11,70 @@ run-name: Fork release ${{ inputs.ref || github.ref_name }}
 #
 # The bundles are unsigned single files. A signed OSTree repository on Pages,
 # which `flatpak update` could follow, is not published yet.
+#
+# What makes a run fast (fork/README.md, "Building"):
+#   - Flathub's builder image already holds the GNOME runtime and SDK; the
+#     Rust and Go SDK extensions are cached per arch and extension commit.
+#   - flatpak-builder's state directory is cached per arch, SDK and Rust
+#     extension commit: its module cache (poppler and the dictionaries are
+#     reused while their sources are unchanged), its downloads, and under
+#     ccache/ the cargo target directories the generated manifest builds in.
+#     The modules built from the checkout (the app and both helpers) are
+#     always rebuilt, since flatpak-builder cannot checksum a directory
+#     source, but cargo then compiles only the crates that changed.
+#   - A run can only read caches saved on its own ref or on main, so a tag's
+#     own saves would help no other run: tag runs restore and never save, and
+#     a daily build of main keeps main's caches current (and inside GitHub's
+#     seven days of eviction) for the next tag.
+#   - The x86_64 job attaches both bundles itself, so publishing does not wait
+#     for another runner.
 
 on:
   push:
     tags:
       - 'v*-tuna*'
+  schedule:
+    # After upstream-sync.yml (05:23), so the cache holds what it merged.
+    - cron: '47 6 * * *'
   workflow_dispatch:
     inputs:
       ref:
         description: 'Tag, branch or SHA to build; a v*-tuna* tag also publishes the release'
         required: false
         default: 'main'
+      clean:
+        description: 'Build from scratch, without restoring the build cache'
+        type: boolean
+        required: false
+        default: false
 
 permissions:
   contents: read
+
+env:
+  RUST_EXTENSION: org.freedesktop.Sdk.Extension.rust-stable//25.08
+  GO_EXTENSION: org.freedesktop.Sdk.Extension.golang//25.08
+  # The size above which the cargo target directories are dropped instead of
+  # cached, so stale crates cannot pile up against GitHub's 10 GB per repo.
+  CARGO_TARGET_CAP_MB: 5000
 
 jobs:
   build:
     name: ${{ matrix.arch }}
     runs-on: ${{ matrix.runner }}
+    container:
+      image: ghcr.io/flathub-infra/flatpak-github-actions:gnome-50
+      # bubblewrap, for flatpak-builder's build sandbox.
+      options: --privileged
     timeout-minutes: 120
+    defaults:
+      run:
+        shell: bash
+    permissions:
+      # The x86_64 job publishes the release: it reads the run's artifacts
+      # and jobs to wait for the aarch64 bundle, then writes the release.
+      actions: read
+      contents: write
     strategy:
       fail-fast: false
       matrix:
@@ -39,11 +83,6 @@ jobs:
             runner: ubuntu-24.04
           - arch: aarch64
             runner: ubuntu-24.04-arm
-    outputs:
-      tag: ${{ steps.version.outputs.tag }}
-      version: ${{ steps.version.outputs.version }}
-      app_id: ${{ steps.version.outputs.app_id }}
-      app_name: ${{ steps.version.outputs.app_name }}
 
     steps:
       - uses: actions/checkout@v4
@@ -53,6 +92,13 @@ jobs:
           # tutabridge and tutanota checkouts inside it, which
           # sdk-prepare.py reads.
           submodules: recursive
+          # This job's token can write releases; nothing here pushes.
+          persist-credentials: false
+
+      - name: Trust the checkout
+        # The container runs as root over a workspace the runner's user owns,
+        # which git otherwise refuses as dubious ownership.
+        run: git config --global --add safe.directory '*'
 
       - name: Pick the version
         id: version
@@ -78,19 +124,36 @@ jobs:
             echo "tag=$tag"
             echo "version=$version"
             echo "bundle=$bundle"
-            echo "app_id=$APP_ID"
-            echo "app_name=$APP_NAME"
           } >> "$GITHUB_OUTPUT"
           echo "building $APP_NAME $version for ${{ matrix.arch }}${tag:+, release $tag}"
 
-      - name: Install flatpak-builder
+      - name: Look up the SDK and extension commits
+        id: refs
         run: |
-          sudo apt-get update
-          sudo apt-get install -y flatpak flatpak-builder python3-aiohttp python3-tomlkit
-
-      - name: Install the GNOME runtime and the Rust and Go SDK extensions
-        run: |
+          # The image ships the GNOME runtime and SDK in its system
+          # installation; the extensions go into the user one, which is cached.
           flatpak remote-add --user --if-not-exists flathub https://flathub.org/repo/flathub.flatpakrepo
+          sdk=$(flatpak info --show-commit org.gnome.Sdk//50)
+          rust=$(flatpak remote-info --user --show-commit flathub "$RUST_EXTENSION")
+          go=$(flatpak remote-info --user --show-commit flathub "$GO_EXTENSION")
+          echo "org.gnome.Sdk//50 $sdk, $RUST_EXTENSION $rust, $GO_EXTENSION $go"
+          state="flatpak-state-${{ matrix.arch }}-${sdk:0:12}-${rust:0:12}-"
+          {
+            echo "extensions=flatpak-extensions-${{ matrix.arch }}-${rust:0:12}-${go:0:12}"
+            echo "state-prefix=$state"
+            echo "state=$state$(git rev-parse HEAD)"
+          } >> "$GITHUB_OUTPUT"
+
+      - name: Restore the SDK extensions
+        id: extensions
+        uses: actions/cache/restore@v4
+        with:
+          path: ~/.local/share/flatpak
+          key: ${{ steps.refs.outputs.extensions }}
+
+      - name: Install the Rust and Go SDK extensions
+        if: steps.extensions.outputs.cache-hit != 'true'
+        run: |
           install_ref() {
             # `--no-static-deltas` and the retries: Flathub's CDN occasionally
             # lists a delta it then 404s, as in build-arm64.yml.
@@ -103,10 +166,16 @@ jobs:
             done
             return 1
           }
-          install_ref org.gnome.Platform//50 org.gnome.Sdk//50
-          install_ref org.freedesktop.Sdk.Extension.rust-stable//25.08
+          install_ref "$RUST_EXTENSION"
           # The Proton helper (native/proton) is Go.
-          install_ref org.freedesktop.Sdk.Extension.golang//25.08
+          install_ref "$GO_EXTENSION"
+
+      - name: Cache the SDK extensions
+        if: steps.extensions.outputs.cache-hit != 'true' && !startsWith(github.ref, 'refs/tags/')
+        uses: actions/cache/save@v4
+        with:
+          path: ~/.local/share/flatpak
+          key: ${{ steps.refs.outputs.extensions }}
 
       - name: Prepare the Tuta SDK
         # The helper (tuta-helper from tuta-unofficial-sdk) builds against an
@@ -146,10 +215,35 @@ jobs:
         # This checkout is thrown away after the job, so it is rebranded in place.
         run: HYLKI_REBRAND_IN_PLACE=1 fork/rebrand.sh "$PWD"
 
+      - name: Restore the build cache
+        id: state
+        if: ${{ !inputs.clean }}
+        uses: actions/cache/restore@v4
+        with:
+          # flatpak-builder's default state directory, which the generated
+          # manifest's directory sources skip.
+          path: .flatpak-builder
+          # One entry per commit built; the newest one for the same SDK and
+          # Rust toolchain is restored. A new toolchain starts from scratch
+          # rather than carrying artifacts no build can use.
+          key: ${{ steps.refs.outputs.state }}
+          restore-keys: ${{ steps.refs.outputs.state-prefix }}
+
+      - name: Keep unchanged sources' timestamps
+        run: |
+          # So cargo rebuilds only what changed since the cached build; the
+          # Rust modules apply the directory times this writes.
+          python3 fork/ci-mtimes.py record . .flatpak-builder/mtimes.json
+          # flatpak-builder mounts this at /run/ccache when it exists; the
+          # cargo target directories live under it, beside ccache's own
+          # cache for the C compiled by build scripts.
+          mkdir -p .flatpak-builder/ccache
+          echo 'max_size = 500M' > .flatpak-builder/ccache/ccache.conf
+
       - name: Build
         run: |
-          flatpak-builder --user --force-clean --disable-rofiles-fuse \
-            --state-dir="$RUNNER_TEMP/flatpak-state" \
+          flatpak-builder --user --force-clean --disable-rofiles-fuse --ccache \
+            --state-dir=.flatpak-builder \
             --repo="$RUNNER_TEMP/repo" --default-branch=stable \
             "$RUNNER_TEMP/build-dir" "fork/$APP_ID.yml"
 
@@ -183,29 +277,67 @@ jobs:
           retention-days: 30
           if-no-files-found: error
 
-  release:
-    name: GitHub release
-    needs: build
-    if: needs.build.outputs.tag != ''
-    runs-on: ubuntu-latest
-    permissions:
-      contents: write
-    env:
-      GH_TOKEN: ${{ github.token }}
-      GH_REPO: ${{ github.repository }}
-      TAG: ${{ needs.build.outputs.tag }}
-      VERSION: ${{ needs.build.outputs.version }}
-      APP_ID: ${{ needs.build.outputs.app_id }}
-      APP_NAME: ${{ needs.build.outputs.app_name }}
-    steps:
-      - uses: actions/download-artifact@v4
+      - name: Trim the build cache
+        if: steps.state.outputs.cache-hit != 'true' && !startsWith(github.ref, 'refs/tags/')
+        run: |
+          # Build directories are left behind only by a failed module, and
+          # the hard-link farm is per build.
+          rm -rf .flatpak-builder/build .flatpak-builder/rofiles
+          targets=.flatpak-builder/ccache/cargo-target
+          size=$(du -sm "$targets" 2>/dev/null | cut -f1)
+          if [ "${size:-0}" -gt "$CARGO_TARGET_CAP_MB" ]; then
+            echo "cargo targets are ${size} MB, over ${CARGO_TARGET_CAP_MB} MB; not keeping them"
+            rm -rf "$targets"
+          fi
+          du -sh .flatpak-builder/* .flatpak-builder/ccache/cargo-target/* 2>/dev/null || true
+
+      - name: Save the build cache
+        if: steps.state.outputs.cache-hit != 'true' && !startsWith(github.ref, 'refs/tags/')
+        uses: actions/cache/save@v4
         with:
-          pattern: fork-release-*
-          merge-multiple: true
+          path: .flatpak-builder
+          key: ${{ steps.refs.outputs.state }}
+
+      - name: Wait for the aarch64 bundle
+        if: matrix.arch == 'x86_64' && steps.version.outputs.tag != ''
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+        run: |
+          # A separate release job would queue for a runner of its own, which
+          # took over half an hour when the organisation's runners were busy.
+          # If the aarch64 job ends without its bundle, nothing is published.
+          run="repos/$GH_REPO/actions/runs/$GITHUB_RUN_ID"
+          has_bundle() {
+            names=$(gh api "$run/artifacts?per_page=100" --jq '.artifacts[].name') || return 1
+            grep -qx fork-release-aarch64 <<<"$names"
+          }
+          until has_bundle; do
+            conclusion=$(gh api "$run/attempts/$GITHUB_RUN_ATTEMPT/jobs" \
+              --jq '.jobs[] | select(.name == "aarch64") | .conclusion // ""') || conclusion=""
+            if [ -n "$conclusion" ]; then
+              has_bundle && break
+              echo "the aarch64 job ended ($conclusion) without a bundle; not publishing" >&2
+              exit 1
+            fi
+            sleep 20
+          done
+
+      - uses: actions/download-artifact@v4
+        if: matrix.arch == 'x86_64' && steps.version.outputs.tag != ''
+        with:
+          name: fork-release-aarch64
 
       - name: Attach the bundles
+        if: matrix.arch == 'x86_64' && steps.version.outputs.tag != ''
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          TAG: ${{ steps.version.outputs.tag }}
+          VERSION: ${{ steps.version.outputs.version }}
         run: |
           sha256sum ./*.flatpak > SHA256SUMS
+          test "$(wc -l < SHA256SUMS)" -eq 2
           if ! gh release view "$TAG" >/dev/null 2>&1; then
             gh release create "$TAG" --verify-tag --title "$APP_NAME $VERSION" \
               --notes "$APP_NAME $VERSION, the TunaOS office suite's email client: Hylki by hyprlab (https://github.com/hyprlab/hylki) with native Tuta and Proton Mail accounts, as a Flatpak bundle for x86_64 and aarch64. Install with \`flatpak install --user $APP_ID-$VERSION.flatpak\`; it sits beside upstream Hylki and keeps its own data."

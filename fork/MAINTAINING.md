@@ -144,6 +144,8 @@ no Tuta or Proton account configured. If it would, it goes upstream.
   the upstream base is always visible.
 - **Building:** `.github/workflows/fork-release.yml` builds the rebranded
   Flatpak (both helpers included) for x86_64 and aarch64 and attaches it to
-  the GitHub release.
+  the GitHub release. It reuses the caches a daily build of `main` keeps
+  warm (fork/README.md, "Building"); run it by hand with `clean` ticked if a
+  cache goes bad.
 - **Release notes** list the upstream version merged, plus the fork-only
   changes since the last tag.

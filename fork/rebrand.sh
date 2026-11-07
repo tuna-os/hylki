@@ -534,6 +534,28 @@ if root in manifest:
     fail(f"{MANIFEST}: an absolute path to {root} is left")
 MANIFEST.write_text(manifest)
 
+# The Rust modules build in a cargo target directory under /run/ccache, which
+# flatpak-builder mounts from its state directory (--ccache), so a build that
+# keeps that directory, as fork-release.yml does, recompiles only the crates
+# that changed. The binaries are installed from there. Each module first puts
+# back the timestamps flatpak-builder's copy loses (fork/ci-mtimes.py); in a
+# build that did not record them, that does nothing.
+for binary in ("tuta-helper", "hylki"):
+    sub(MANIFEST, rf"^      - install -Dm755 target/release/{binary} ",
+        literal(f'      - install -Dm755 "$CARGO_TARGET_DIR"/release/{binary} '), count=1)
+sub(MANIFEST, r"^        CARGO_NET_OFFLINE: 'true'\n",
+    literal("        CARGO_NET_OFFLINE: 'true'\n"
+            "        CARGO_TARGET_DIR: /run/ccache/cargo-target/hylki-tuta\n"), count=1)
+sub(MANIFEST, r"^  - name: hylki\n    buildsystem: simple\n",
+    literal("  - name: hylki\n    buildsystem: simple\n    build-options:\n      env:\n"
+            "        CARGO_TARGET_DIR: /run/ccache/cargo-target/hylki\n"), count=1)
+APPLY_MTIMES = ('      - python3 "$FLATPAK_BUILDER_BUILDDIR"/fork/ci-mtimes.py apply'
+                ' "$FLATPAK_BUILDER_BUILDDIR" "$CARGO_HOME"/vendor\n')
+for first in ("cargo --offline build --locked --release --verbose -p tuta-helper",
+              "cargo --offline fetch --manifest-path Cargo.toml --verbose"):
+    sub(MANIFEST, rf"^    build-commands:\n      - {re.escape(first)}\n",
+        literal(f"    build-commands:\n{APPLY_MTIMES}      - {first}\n"), count=1)
+
 sweep_check()
 STAMP.write_text(f"{APP_ID}\n")
 print(f"rebrand: {tree} is now {APP_NAME} ({APP_ID})")

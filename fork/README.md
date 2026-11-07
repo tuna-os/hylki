@@ -86,9 +86,10 @@ nothing else; `fork-release.yml` and `import-from-hylki.sh` read them through
   a tagged commit of hyprlab/hylki, which would build without the rebrand, so
   the fork's builds the rebranded tree it sits in. Every module, including the
   Tuta (Rust) and Proton (Go) helpers, is upstream's recipe, except that the
-  two Rust modules build in a cargo target directory under `/run/ccache` and
-  install from there, so a build that keeps flatpak-builder's state directory
-  recompiles only the crates that changed.
+  two Rust modules build in a cargo target directory under `/run/ccache`,
+  install from there, and first run `fork/ci-mtimes.py apply`, so a build
+  that keeps flatpak-builder's state directory recompiles only the crates
+  that changed (see "Building").
 
 Left alone on purpose: the bundled resource prefix `/co/hyprlab/Hylki`, which
 is private to the process (`main.rs` pins it), the `hylki` binary and gettext
@@ -150,9 +151,10 @@ The workflow keeps its builds fast with caches:
   their sources are unchanged, the downloads, and the cargo target
   directories. The app and both helpers build from the checkout, a directory
   source that flatpak-builder cannot checksum, so those modules always run,
-  but `fork/ci-mtimes.py` gives every unchanged file its timestamp from the
-  cached build, and cargo then recompiles only the crates that changed. The
-  target directories are dropped instead of saved once they pass 5 GB.
+  but `fork/ci-mtimes.py` gives every unchanged file, and the directories
+  build scripts watch, their timestamps from the cached build, and cargo then
+  recompiles only the crates that changed. The target directories are
+  dropped instead of saved once they pass 5 GB.
 - GitHub lets a run read only caches saved on its own ref or on `main`. Tag
   runs therefore restore and never save, and a daily build of `main` (after
   the upstream sync) keeps `main`'s caches current and inside GitHub's seven

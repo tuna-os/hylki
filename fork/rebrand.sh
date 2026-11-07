@@ -473,6 +473,28 @@ for path in sorted(Path("src").rglob("testdata/**/*")):
 sub(about, r'i18n\("© 2026 Hyprlab"\)', literal(f'i18n("{CREDIT_FOOTER}")'), count=1)
 sub(about, r'\.title\(i18n\("Buy Me a Coffee"\)\)', literal(f'.title(i18n("{CREDIT_COFFEE}"))'), count=1)
 
+# --- The app's own defaults -------------------------------------------------
+# Sender pictures are on for a new install: Gravatar portraits and the
+# senders' site icons. Upstream keeps both off. An existing privacy.toml keeps
+# what it says; a file from before these keys reads them as on too. The
+# golden files the snapshot tests compare the defaults with follow.
+privacy = "src/config/privacy.rs"
+for field in ("gravatar", "sender_logos"):
+    sub(privacy, rf"^    #\[serde\(default\)\]\n    pub\(crate\) {field}: bool,$",
+        literal(f'    #[serde(default = "default_on")]\n    pub(crate) {field}: bool,'), count=1)
+    sub(privacy, rf"^            {field}: false,$", literal(f"            {field}: true,"), count=1)
+    sub("src/ui/message_list/init.rs", rf"^            {field}: false,$",
+        literal(f"            {field}: true,"), count=1)
+sub(privacy, r"^    /// Whether to load sender avatars from Gravatar \(off by default — it sends\n"
+    r"    /// a hash of each sender's email to a third party\)\.$",
+    literal("    /// Whether to load sender avatars from Gravatar (on by default in this app;\n"
+            "    /// it sends a hash of each sender's email to a third party)."), count=1)
+for golden in ("privacy-default.toml", "privacy-empty-file.toml", "bundle.toml"):
+    sub(f"src/config/testdata/{golden}",
+        r"^remote_ahead = false\ngravatar = false\navatars = true\nsender_logos = false$",
+        literal("remote_ahead = false\ngravatar = true\navatars = true\nsender_logos = true"),
+        count=1)
+
 # --- The Flatpak manifest ---------------------------------------------------
 # Upstream's manifest pins a tagged commit of hyprlab/hylki. A pinned source
 # would be built without this rebrand, so the fork's manifest builds the tree

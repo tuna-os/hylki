@@ -1058,6 +1058,7 @@ fn live_proton_account() {
         mailbox_password: env("PROTON_LIVE_MAILBOX_PASSWORD"),
         hv_token: env("PROTON_LIVE_HV_TOKEN"),
         hv_type: env("PROTON_LIVE_HV_TYPE"),
+        pending: None,
     };
     let transport = process_transport(SPEC);
     let session = login(&transport, SPEC, &sign_in).unwrap_or_else(|e| {

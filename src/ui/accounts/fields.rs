@@ -172,14 +172,16 @@ impl AccountsWindow {
             return;
         }
         let (hv_token, hv_type) = self.human_check.solved();
-        let login = worker::HelperLogin {
+        let mut login = worker::HelperLogin {
             email: email.clone(),
             password,
             totp: totp_code(&widgets.form.totp_row),
             mailbox_password: mailbox_password(&widgets.form.mailbox_pass_row),
             hv_token,
             hv_type,
+            pending: None,
         };
+        login.pending = self.second_factor.begin(&login);
         widgets.form.test_btn.set_sensitive(false);
         widgets.form.test_result.set_css_classes(&["dim-label"]);
         widgets.form.test_result.set_label(&i18n("Signing in…"));
@@ -210,6 +212,7 @@ impl AccountsWindow {
         if editor != self.editor_session {
             return;
         }
+        self.second_factor.settle(result.as_ref().err());
         widgets.form.test_btn.set_sensitive(true);
         widgets.form.test_result.set_visible(true);
         let e = match result {

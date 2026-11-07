@@ -162,14 +162,16 @@ impl Welcome {
             ..blank_account()
         };
         let (hv_token, hv_type) = self.human_check.solved();
-        let login = worker::HelperLogin {
+        let mut login = worker::HelperLogin {
             email,
             password,
             totp: totp_code(&widgets.totp_row),
             mailbox_password: mailbox_password(&widgets.mailbox_pass_row),
             hv_token,
             hv_type,
+            pending: None,
         };
+        login.pending = self.second_factor.begin(&login);
         self.test_seq += 1;
         let seq = self.test_seq;
         widgets.test_spinner.set_visible(true);
@@ -492,6 +494,7 @@ impl Welcome {
         if seq != self.test_seq {
             return;
         }
+        self.second_factor.settle(result.as_ref().err());
         widgets.test_spinner.stop();
         widgets.test_spinner.set_visible(false);
         let session = match result {

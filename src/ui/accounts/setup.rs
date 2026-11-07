@@ -57,6 +57,7 @@ impl AccountsWindow {
             pending_helper_session: None,
             human_check: super::proton_verify::HumanCheck::default(),
             human_check_then_save: false,
+            second_factor: Default::default(),
             editor_session: 0,
             editor_secrets: None,
             secrets_reading: false,

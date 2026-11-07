@@ -70,6 +70,7 @@ use graph::run_graph;
 pub(crate) use headers::{clean_display_name, decode_header, unescape_quoted_str};
 pub(crate) use helper::{
     helper_login_blocking, helper_revoke_blocking, HelperError, HelperLogin, HvChallenge,
+    SecondFactorHold,
 };
 pub(crate) use imap::fetch_mode::readable_error;
 pub(crate) use imap::gmail::has_gmail_labels;

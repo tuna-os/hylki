@@ -172,6 +172,8 @@ pub(crate) struct AccountsWindow {
     /// Whether the sign-in a verification stopped was Save's, so the one
     /// after it saves too.
     human_check_then_save: bool,
+    /// A Tuta sign-in waiting on its code, for the next try.
+    second_factor: crate::worker::SecondFactorHold,
     /// Counts the times the editor opened, so a keyring answer for an
     /// editor since replaced is dropped.
     editor_session: u64,

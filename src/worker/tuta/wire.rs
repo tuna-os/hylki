@@ -52,6 +52,8 @@ const ERROR_CODES: &[&str] = &[
     "unsupported_u2f",
     "unsupported_webauthn",
     "second_factor_failed",
+    "pending_session_expired",
+    "rate_limited",
     "request_failed",
     "folder_not_found",
     "folder_failed",

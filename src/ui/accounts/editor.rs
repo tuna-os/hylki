@@ -311,6 +311,7 @@ impl AccountsWindow {
         self.pending_helper_session = None;
         self.human_check.clear();
         self.human_check_then_save = false;
+        self.second_factor.clear();
     }
 
     /// Read `acc`'s secrets off the main thread; they arrive as

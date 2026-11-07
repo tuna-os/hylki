@@ -510,3 +510,182 @@ fn a_streaming_helper_that_will_not_leave_is_stopped() {
     assert!(took >= WATCH_EXIT_GRACE, "{took:?}");
     assert!(took < WATCH_EXIT_GRACE + Duration::from_secs(5), "{took:?}");
 }
+
+/// Tuta's helper as a two-factor sign-in sees it: a `login` without
+/// `pending_session` opens a new session on the server (counted), and one
+/// with it completes that session with the code. Replies come from
+/// `script`, in order, for the requests that reach it.
+struct TutaSignIn {
+    requests: Arc<std::sync::Mutex<Vec<Value>>>,
+}
+
+const PENDING: &str = r#"{"login":"me@tuta.com","user_id":"u","access_token":"PENDING-SECRET","encrypted_passphrase_key":[1]}"#;
+
+impl TutaSignIn {
+    fn transport(&self, script: Vec<Value>) -> Transport {
+        let requests = self.requests.clone();
+        let script = Arc::new(std::sync::Mutex::new(script.into_iter()));
+        Arc::new(move |request: &Value| {
+            requests.lock().unwrap().push(request.clone());
+            match script.lock().unwrap().next() {
+                Some(Value::Object(reply)) => Ok(reply),
+                _ => panic!("no reply scripted for {request}"),
+            }
+        })
+    }
+
+    /// How many sign-ins opened a new session on the server.
+    fn initiated(&self) -> usize {
+        let requests = self.requests.lock().unwrap();
+        requests
+            .iter()
+            .filter(|r| r["op"] == "login" && r.get("pending_session").is_none())
+            .count()
+    }
+
+    fn pending_sent(&self, index: usize) -> Option<Value> {
+        self.requests.lock().unwrap()[index].get("pending_session").cloned()
+    }
+}
+
+fn tuta_sign_in() -> TutaSignIn {
+    TutaSignIn {
+        requests: Arc::default(),
+    }
+}
+
+fn pending() -> Value {
+    serde_json::from_str(PENDING).unwrap()
+}
+
+fn waiting_for(code: &str) -> Value {
+    json!({"version": 1, "error": {"code": code, "pending_session": pending()}})
+}
+
+fn signed_in() -> Value {
+    json!({"version": 1, "result": {"session": {"login": "me@tuta.com", "user_id": "u",
+        "access_token": "TOKEN", "encrypted_passphrase_key": [1]}}})
+}
+
+/// One press of the form's sign-in button, as the account editor and the
+/// wizard make it.
+fn press(
+    hold: &mut SecondFactorHold,
+    transport: &Transport,
+    password: &str,
+    totp: Option<&str>,
+) -> Result<String, HelperError> {
+    let mut sign_in = HelperLogin {
+        email: "me@tuta.com".into(),
+        password: password.into(),
+        totp: totp.map(str::to_string),
+        ..HelperLogin::default()
+    };
+    sign_in.pending = hold.begin(&sign_in);
+    let result = login(transport, crate::worker::tuta::SPEC, &sign_in);
+    hold.settle(result.as_ref().err());
+    result
+}
+
+#[test]
+fn the_code_completes_the_sign_in_that_asked_for_it() {
+    let fake = tuta_sign_in();
+    let transport = fake.transport(vec![waiting_for("second_factor_required"), signed_in()]);
+    let mut hold = SecondFactorHold::default();
+    let asked = press(&mut hold, &transport, "pw", None).unwrap_err();
+    assert!(asked.needs_second_factor());
+    assert!(asked.pending_sign_in().is_some());
+    press(&mut hold, &transport, "pw", Some("123456")).unwrap();
+    // One session opened on the server; the code went to it.
+    assert_eq!(fake.initiated(), 1);
+    assert_eq!(fake.pending_sent(1), Some(pending()));
+    assert_eq!(fake.requests.lock().unwrap()[1]["totp"], "123456");
+    // Signed in: nothing is held any more.
+    assert_eq!(format!("{hold:?}"), "SecondFactorHold { held: false }");
+}
+
+#[test]
+fn a_wrong_code_is_retried_on_the_same_pending_session() {
+    let fake = tuta_sign_in();
+    let transport = fake.transport(vec![
+        waiting_for("second_factor_required"),
+        waiting_for("second_factor_failed"),
+        waiting_for("invalid_totp"),
+        signed_in(),
+    ]);
+    let mut hold = SecondFactorHold::default();
+    press(&mut hold, &transport, "pw", None).unwrap_err();
+    let wrong = press(&mut hold, &transport, "pw", Some("000000")).unwrap_err();
+    assert_eq!(wrong.code, "second_factor_failed");
+    let typo = press(&mut hold, &transport, "pw", Some("12345")).unwrap_err();
+    assert_eq!(typo.code, "invalid_totp");
+    press(&mut hold, &transport, "pw", Some("123456")).unwrap();
+    assert_eq!(fake.initiated(), 1);
+    for index in 1..4 {
+        assert_eq!(fake.pending_sent(index), Some(pending()), "request {index}");
+    }
+}
+
+#[test]
+fn another_address_or_password_starts_a_new_sign_in() {
+    let fake = tuta_sign_in();
+    let transport = fake.transport(vec![
+        waiting_for("second_factor_required"),
+        waiting_for("second_factor_required"),
+        signed_in(),
+    ]);
+    let mut hold = SecondFactorHold::default();
+    press(&mut hold, &transport, "pw", None).unwrap_err();
+    // The password was corrected: the held session was for the old one.
+    press(&mut hold, &transport, "other", Some("123456")).unwrap_err();
+    assert_eq!(fake.pending_sent(1), None);
+    press(&mut hold, &transport, "other", Some("123456")).unwrap();
+    assert_eq!(fake.pending_sent(2), Some(pending()));
+    assert_eq!(fake.initiated(), 2);
+}
+
+#[test]
+fn throttling_and_an_expired_sign_in_are_named_and_handled() {
+    let fake = tuta_sign_in();
+    let transport = fake.transport(vec![
+        json!({"version": 1, "error": {"code": "rate_limited"}}),
+        waiting_for("second_factor_required"),
+        // Throttled during the code: the session is handed back, kept.
+        waiting_for("rate_limited"),
+        // The server let it go: nothing handed back, start over.
+        json!({"version": 1, "error": {"code": "pending_session_expired"}}),
+        signed_in(),
+    ]);
+    let mut hold = SecondFactorHold::default();
+    let limited = press(&mut hold, &transport, "pw", None).unwrap_err();
+    assert_eq!(limited.code, "rate_limited");
+    assert_eq!(
+        limited.message(),
+        "Tuta is limiting sign-ins for this account. Wait a few minutes, then try again."
+    );
+    press(&mut hold, &transport, "pw", None).unwrap_err();
+    let limited = press(&mut hold, &transport, "pw", Some("123456")).unwrap_err();
+    assert_eq!(limited.code, "rate_limited");
+    assert_eq!(fake.pending_sent(2), Some(pending()));
+    let expired = press(&mut hold, &transport, "pw", Some("123456")).unwrap_err();
+    assert_eq!(expired.code, "pending_session_expired");
+    assert!(expired.message().contains("sign in again"));
+    assert_eq!(fake.pending_sent(3), Some(pending()));
+    press(&mut hold, &transport, "pw", Some("123456")).unwrap();
+    assert_eq!(fake.pending_sent(4), None);
+}
+
+#[test]
+fn a_pending_sign_in_never_shows_in_debug_output() {
+    let fake = tuta_sign_in();
+    let transport = fake.transport(vec![waiting_for("second_factor_required")]);
+    let mut hold = SecondFactorHold::default();
+    let asked = press(&mut hold, &transport, "pw", None).unwrap_err();
+    for shown in [format!("{asked:?}"), format!("{hold:?}"), format!("{:?}", asked.pending_sign_in())] {
+        assert!(!shown.contains("PENDING-SECRET"), "{shown}");
+    }
+    assert_eq!(
+        format!("{asked:?}"),
+        "HelperError { code: \"second_factor_required\", pending: true }"
+    );
+}

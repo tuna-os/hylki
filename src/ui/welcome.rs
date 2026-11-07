@@ -56,6 +56,8 @@ pub(crate) struct Welcome {
     manual_added: bool,
     /// Proton's human verification for the manual form's sign-in.
     human_check: HumanCheck,
+    /// A Tuta sign-in waiting on its code, for the next try.
+    second_factor: crate::worker::SecondFactorHold,
 }
 
 pub(crate) struct WelcomeWidgets {
@@ -149,6 +151,7 @@ impl Component for Welcome {
             goa_imported: false,
             manual_added: false,
             human_check: HumanCheck::default(),
+            second_factor: Default::default(),
         };
 
         let carousel = adw::Carousel::new();

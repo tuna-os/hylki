@@ -7818,6 +7818,15 @@ msgstr "A könyvtár nem fogadta el a jelszót."
 msgid "Could not reach the server."
 msgstr "Nem sikerült elérni a kiszolgálót"
 
+msgid ""
+"Tuta is limiting sign-ins for this account. Wait a few minutes, then try "
+"again."
+msgstr ""
+
+msgid ""
+"The sign-in waited too long for its code. Enter a new code and sign in again."
+msgstr ""
+
 msgid "Sign-in failed. Check the address and the password."
 msgstr ""
 

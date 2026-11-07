@@ -7550,6 +7550,15 @@ msgstr "Η υπηρεσία δεν αποδέχτηκε το κλειδί."
 msgid "Could not reach the server."
 msgstr "Δεν ήταν δυνατή η επικοινωνία με τον διακομιστή"
 
+msgid ""
+"Tuta is limiting sign-ins for this account. Wait a few minutes, then try "
+"again."
+msgstr ""
+
+msgid ""
+"The sign-in waited too long for its code. Enter a new code and sign in again."
+msgstr ""
+
 msgid "Sign-in failed. Check the address and the password."
 msgstr ""
 

@@ -79,13 +79,30 @@ impl std::fmt::Debug for HvChallenge {
     }
 }
 
+/// A sign-in waiting for its second factor: the session the server
+/// opened for it, as the helper handed it back with
+/// `second_factor_required` (Tuta's `error.pending_session`). The code is
+/// sent on that session rather than with a new sign-in, which Tuta
+/// throttles. A credential: held in memory only (see [`SecondFactorHold`]),
+/// never stored or logged, and its Debug output names nothing.
+#[derive(Clone, PartialEq, Eq)]
+pub(crate) struct PendingSignIn(Value);
+
+impl std::fmt::Debug for PendingSignIn {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.write_str("PendingSignIn(..)")
+    }
+}
+
 /// A helper request that failed, as a fixed code, and for a sign-in the
-/// server wants a person behind, its challenge. Its Debug output never
-/// holds a secret or server text.
+/// server wants a person behind, its challenge, or for one waiting on its
+/// second factor, the pending session. Its Debug output never holds a
+/// secret or server text.
 #[derive(Clone, PartialEq, Eq)]
 pub(crate) struct HelperError {
     pub(crate) code: String,
     hv: Option<HvChallenge>,
+    pending: Option<PendingSignIn>,
 }
 
 impl std::fmt::Debug for HelperError {
@@ -94,6 +111,9 @@ impl std::fmt::Debug for HelperError {
         out.field("code", &self.code);
         if let Some(hv) = &self.hv {
             out.field("hv", hv);
+        }
+        if self.pending.is_some() {
+            out.field("pending", &true);
         }
         out.finish()
     }
@@ -104,7 +124,14 @@ impl HelperError {
         HelperError {
             code: code.to_string(),
             hv: None,
+            pending: None,
         }
+    }
+
+    /// The pending session a sign-in that is waiting on its second factor
+    /// handed back: the next try with the code goes to it.
+    pub(crate) fn pending_sign_in(&self) -> Option<PendingSignIn> {
+        self.pending.clone()
     }
 
     /// A `human_verification_required` refusal with `challenge`, as the
@@ -114,6 +141,7 @@ impl HelperError {
         HelperError {
             code: "human_verification_required".to_string(),
             hv: Some(challenge),
+            pending: None,
         }
     }
 
@@ -150,6 +178,12 @@ impl HelperError {
             ),
             "timeout" => i18n("The server did not answer in time."),
             "transport_failed" => i18n("Could not reach the server."),
+            "rate_limited" => i18n(
+                "Tuta is limiting sign-ins for this account. Wait a few minutes, then try again.",
+            ),
+            "pending_session_expired" => i18n(
+                "The sign-in waited too long for its code. Enter a new code and sign in again.",
+            ),
             "login_failed" => i18n("Sign-in failed. Check the address and the password."),
             "second_factor_required" => {
                 i18n("Enter the six-digit code from your authenticator app.")
@@ -392,6 +426,11 @@ fn check_reply(reply: &Object, spec: HelperSpec) -> Result<(), HelperError> {
         if code == "human_verification_required" {
             error.hv = hv_challenge(detail.get("hv"));
         }
+        error.pending = detail
+            .get("pending_session")
+            .filter(|pending| pending.is_object())
+            .cloned()
+            .map(PendingSignIn);
         return Err(error);
     }
     Ok(())
@@ -614,6 +653,68 @@ pub(crate) struct HelperLogin {
     pub(crate) mailbox_password: Option<String>,
     pub(crate) hv_token: Option<String>,
     pub(crate) hv_type: Option<String>,
+    /// The sign-in the code completes, from [`SecondFactorHold::begin`].
+    pub(crate) pending: Option<PendingSignIn>,
+}
+
+/// What a sign-in form holds between a `second_factor_required` and the
+/// try with the code: the pending session, for the address and password it
+/// was opened with, in memory only. A try for another address or password
+/// drops it; so does a success, and a failure that hands none back (the
+/// server let it go, or too many wrong codes).
+#[derive(Default)]
+pub(crate) struct SecondFactorHold {
+    /// Who the try in flight is for.
+    attempt: Option<u64>,
+    held: Option<(u64, PendingSignIn)>,
+}
+
+impl std::fmt::Debug for SecondFactorHold {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_struct("SecondFactorHold")
+            .field("held", &self.held.is_some())
+            .finish()
+    }
+}
+
+/// Tells one address and password from another without keeping either.
+fn sign_in_identity(email: &str, password: &str) -> u64 {
+    use std::hash::{Hash, Hasher};
+    let mut hasher = std::collections::hash_map::DefaultHasher::new();
+    email.trim().to_lowercase().hash(&mut hasher);
+    password.hash(&mut hasher);
+    hasher.finish()
+}
+
+impl SecondFactorHold {
+    /// A sign-in for `login` is starting: the pending session to send with
+    /// it, when one is held for that address and password.
+    pub(crate) fn begin(&mut self, login: &HelperLogin) -> Option<PendingSignIn> {
+        let identity = sign_in_identity(&login.email, &login.password);
+        self.attempt = Some(identity);
+        match &self.held {
+            Some((held, pending)) if *held == identity => Some(pending.clone()),
+            _ => {
+                self.held = None;
+                None
+            }
+        }
+    }
+
+    /// The sign-in [`SecondFactorHold::begin`] started has answered: keep
+    /// the pending session a failure handed back, and nothing otherwise.
+    pub(crate) fn settle(&mut self, error: Option<&HelperError>) {
+        let attempt = self.attempt.take();
+        self.held = match (attempt, error.and_then(HelperError::pending_sign_in)) {
+            (Some(identity), Some(pending)) => Some((identity, pending)),
+            _ => None,
+        };
+    }
+
+    /// Forget everything, as when the form closes.
+    pub(crate) fn clear(&mut self) {
+        *self = SecondFactorHold::default();
+    }
 }
 
 impl std::fmt::Debug for HelperLogin {
@@ -646,6 +747,9 @@ pub(super) fn login(
         if let Some(value) = value {
             parameters.insert(key.into(), value.as_str().into());
         }
+    }
+    if let Some(PendingSignIn(pending)) = &sign_in.pending {
+        parameters.insert("pending_session".into(), pending.clone());
     }
     let result = request(transport, spec, "login", parameters)?;
     match result.get("session") {

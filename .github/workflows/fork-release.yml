@@ -229,9 +229,11 @@ jobs:
           key: ${{ steps.refs.outputs.state }}
           restore-keys: ${{ steps.refs.outputs.state-prefix }}
 
-      - name: Keep unchanged files' timestamps
+      - name: Keep unchanged sources' timestamps
         run: |
-          python3 fork/ci-mtimes.py . .flatpak-builder/mtimes.json
+          # So cargo rebuilds only what changed since the cached build; the
+          # Rust modules apply the directory times this writes.
+          python3 fork/ci-mtimes.py record . .flatpak-builder/mtimes.json
           # flatpak-builder mounts this at /run/ccache when it exists; the
           # cargo target directories live under it, beside ccache's own
           # cache for the C compiled by build scripts.
